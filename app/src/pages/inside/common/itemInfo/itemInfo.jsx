@@ -49,6 +49,10 @@ import { TextTooltip } from 'components/main/tooltips/textTooltip';
 import { ExtensionLoader, extensionType } from 'components/extensionLoader';
 import ExternalLinkIcon from 'common/img/open-in-rounded-inline.svg';
 import { INSIGHTS_PAGE_ENABLED } from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
+import {
+  FLAKINESS_BADGE_ENABLED,
+} from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
+import { FlakinessBadge } from 'components/flakiness';
 import { AttributesBlock } from './attributesBlock';
 import { OwnerBlock } from './ownerBlock';
 import { RetriesCounter } from './retriesCounter';
@@ -200,6 +204,7 @@ export class ItemInfo extends Component {
     };
 
     const analyzerInsightsEnabled = analyzerAttributes?.[INSIGHTS_PAGE_ENABLED] !== 'false';
+    const flakinessBadgeEnabled = analyzerAttributes?.[FLAKINESS_BADGE_ENABLED] !== 'false';
     const canOpenAnalyzerInsights =
       analyzerInsightsEnabled && !!customProps.parentLaunch?.id && !!value.id;
 
@@ -236,6 +241,12 @@ export class ItemInfo extends Component {
               <div className={cx('item-badge', 'pattern-analysis')}>Pattern-analysis</div>
             )}
             {value.rerun && <div className={cx('item-badge', 'rerun')}>Rerun</div>}
+            <FlakinessBadge
+              itemId={value.id}
+              itemName={value.name}
+              enabled={flakinessBadgeEnabled}
+              onOpenInsights={canOpenAnalyzerInsights ? this.openAnalyzerInsights : null}
+            />
             {canOpenAnalyzerInsights && (
               <button
                 type="button"

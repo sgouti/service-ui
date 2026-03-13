@@ -1,0 +1,180 @@
+@import '~common/css/variables/index';
+
+.badge-wrapper {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 100px;
+  padding: 3px 8px;
+  font-size: 10px;
+  line-height: 1;
+  font-family: $FONT-SEMIBOLD;
+  color: $COLOR--white-two;
+  cursor: pointer;
+}
+
+.badge-label,
+.badge-score {
+  display: inline-flex;
+}
+
+.stable {
+  background-color: $COLOR--dark-pastel-green;
+}
+
+.unstable {
+  background-color: $COLOR--goldenrod;
+}
+
+.flaky {
+  background-color: $COLOR--orange-red;
+}
+
+.critical {
+  background-color: $COLOR--rust-red;
+}
+
+.badge-skeleton {
+  display: inline-flex;
+  width: 78px;
+  height: 20px;
+  margin-right: 5px;
+  border-radius: 100px;
+  background: linear-gradient(90deg, rgba($COLOR--gray-80, 0.18), rgba($COLOR--gray-80, 0.36), rgba($COLOR--gray-80, 0.18));
+  background-size: 200% 100%;
+  animation: flakiness-badge-pulse 1.4s ease infinite;
+}
+
+.detail-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 3;
+  width: 340px;
+  padding: 16px;
+  border: 1px solid rgba($COLOR--gray-80, 0.24);
+  border-radius: 8px;
+  background: $COLOR--white-two;
+  box-shadow: 0 16px 32px rgba($COLOR--black-2, 0.15);
+
+  @media (max-width: $SCREEN_SM_MAX) {
+    width: min(320px, calc(100vw - 32px));
+    left: auto;
+    right: -24px;
+  }
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-title {
+  font-family: $FONT-SEMIBOLD;
+  font-size: 14px;
+  color: $COLOR--charcoal-grey;
+}
+
+.detail-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: $COLOR--gray-60;
+  word-break: break-word;
+}
+
+.detail-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: $COLOR--topaz;
+  font-family: $FONT-SEMIBOLD;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.detail-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.detail-card {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba($COLOR--gray-91, 0.6);
+}
+
+.detail-label,
+.detail-meta-label,
+.detail-history-title {
+  font-size: 11px;
+  color: $COLOR--gray-60;
+}
+
+.detail-value,
+.detail-meta-value,
+.detail-history-primary,
+.detail-history-status {
+  margin-top: 4px;
+  font-family: $FONT-SEMIBOLD;
+  color: $COLOR--charcoal-grey;
+}
+
+.detail-metadata {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba($COLOR--gray-80, 0.2);
+}
+
+.detail-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+
+  & + & {
+    margin-top: 8px;
+  }
+}
+
+.detail-history {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba($COLOR--gray-80, 0.2);
+}
+
+.detail-history-row {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba($COLOR--gray-80, 0.16);
+
+  &:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.detail-history-secondary,
+.detail-empty {
+  margin-top: 4px;
+  font-size: 11px;
+  color: $COLOR--gray-60;
+}
+
+@keyframes flakiness-badge-pulse {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

@@ -7,6 +7,7 @@ import { Button } from '@reportportal/ui-kit';
 import { fetch } from 'common/utils';
 import { URLS } from 'common/urls';
 import { SpinningPreloader } from 'components/preloaders/spinningPreloader';
+import { FlakinessDetailPanel } from 'components/flakiness';
 import { COMMON_LOCALE_KEYS } from 'common/constants/localization';
 import { ModalLayout } from 'components/main/modal';
 import { showModalAction } from 'controllers/modal';
@@ -185,44 +186,7 @@ const FlakinessDetailsModal = ({ projectKey, itemId, itemName }) => {
       {!details ? (
         <SpinningPreloader />
       ) : (
-        <div className={cx('modal-grid')}>
-          <div className={cx('modal-summary')}>
-            <div className={cx('card')}>
-              <div className={cx('card-label')}>{formatMessage(messages.flakyRateColumn)}</div>
-              <div className={cx('card-value')}>{details.flakyRate}%</div>
-            </div>
-            <div className={cx('card')}>
-              <div className={cx('card-label')}>{formatMessage(messages.historyRuns)}</div>
-              <div className={cx('card-value')}>{details.totalRuns}</div>
-            </div>
-            <div className={cx('card')}>
-              <div className={cx('card-label')}>Transitions</div>
-              <div className={cx('card-value')}>{details.flakyTransitions}</div>
-            </div>
-            <div className={cx('card')}>
-              <div className={cx('card-label')}>{formatMessage(messages.lastChange)}</div>
-              <div className={cx('card-caption')}>
-                {formatDateTime(details.lastStatusChange) || formatMessage(messages.notAvailable)}
-              </div>
-            </div>
-          </div>
-          <div className={cx('panel')}>
-            <div className={cx('table-head', 'table-head-history')}>
-              <div>{formatMessage(messages.launchColumn)}</div>
-              <div>{formatMessage(messages.statusColumn)}</div>
-              <div>{formatMessage(messages.timeColumn)}</div>
-            </div>
-            {details.history.map((entry) => (
-              <div key={`${entry.launchId}-${entry.itemId}`} className={cx('history-row')}>
-                <div className={cx('strong')}>
-                  {entry.launchName} #{entry.launchNumber}
-                </div>
-                <div>{entry.status}</div>
-                <div className={cx('muted')}>{formatDateTime(entry.startTime)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <FlakinessDetailPanel itemName={itemName} details={details} />
       )}
     </ModalLayout>
   );
