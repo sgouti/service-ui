@@ -36,6 +36,8 @@ import {
   MostFailedTests,
   ProjectActivity,
   ProductStatus,
+  TriageAgingHeatmap,
+  AnalyzerCoverageKpi,
 } from './singleLevelWidgets/tables';
 import {
   cumulativeFormatParams,
@@ -77,6 +79,8 @@ const CHARTS = {
   [widgetTypes.MOST_TIME_CONSUMING]: MostTimeConsumingTestCases,
   [widgetTypes.COMPONENT_HEALTH_CHECK_TABLE]: ComponentHealthCheckTable,
   [widgetTypes.TEST_CASE_SEARCH]: TestCaseSearch,
+  [widgetTypes.TRIAGE_AGING_HEATMAP]: TriageAgingHeatmap,
+  [widgetTypes.ANALYZER_COVERAGE_KPI]: AnalyzerCoverageKpi,
 };
 
 const MULTI_LEVEL_WIDGETS_MAP = {

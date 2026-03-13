@@ -16,3 +16,4 @@
 
 export const LIST_OF_VERSIONS = 'listOfVersions';
 export const GENERAL_DOCUMENTATION = 'generalDocumentation';
+export const RELEASE_INSIGHTS = 'releaseInsights';

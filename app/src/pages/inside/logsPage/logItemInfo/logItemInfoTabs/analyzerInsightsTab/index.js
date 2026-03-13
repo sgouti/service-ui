@@ -1,0 +1,1 @@
+export { AnalyzerInsightsTab } from './analyzerInsightsTab';

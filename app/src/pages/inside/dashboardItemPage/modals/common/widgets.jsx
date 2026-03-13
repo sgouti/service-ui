@@ -17,6 +17,7 @@
 import { FormattedMessage } from 'react-intl';
 import Parser from 'html-react-parser';
 import {
+  ANALYZER_COVERAGE_KPI,
   LAUNCH_STATISTICS,
   OVERALL_STATISTICS,
   LAUNCH_DURATION,
@@ -39,6 +40,7 @@ import {
   COMPONENT_HEALTH_CHECK_TABLE,
   MOST_TIME_CONSUMING,
   TEST_CASE_SEARCH,
+  TRIAGE_AGING_HEATMAP,
   /*
   PRODUCT_STATUS,
   */
@@ -68,6 +70,7 @@ import {
   ComponentHealthCheckControls,
   ComponentHealthCheckTableViewControls,
   MostTimeConsumingTestCasesControls,
+  AnalyzerProjectWidgetControls,
   /*
   ProductStatusControls,
   */
@@ -407,6 +410,38 @@ export const getWidgets = (formatMessage) => [
     preview: Parser(TEST_CASE_SEARCH_PREVIEW),
     documentationLink: widgetDocsReferences.testCaseSearch,
     documentationClickEventInfo: WIDGETS_EVENTS.onSearchWidgetDocumentLinkClick,
+  },
+  {
+    id: TRIAGE_AGING_HEATMAP,
+    title: formatMessage(widgetTypesMessages[TRIAGE_AGING_HEATMAP]),
+    description: (
+      <FormattedMessage
+        id={'Widgets.Description.triageAgingHeatmap'}
+        defaultMessage={'Time-in-triage for To Investigate items across the project.'}
+      />
+    ),
+    preview: (
+      <div>
+        <strong>0-24h</strong> | <strong>1-3d</strong> | <strong>3-7d</strong> | <strong>7+d</strong>
+      </div>
+    ),
+    controls: AnalyzerProjectWidgetControls,
+  },
+  {
+    id: ANALYZER_COVERAGE_KPI,
+    title: formatMessage(widgetTypesMessages[ANALYZER_COVERAGE_KPI]),
+    description: (
+      <FormattedMessage
+        id={'Widgets.Description.analyzerCoverageKpi'}
+        defaultMessage={'Sprint-over-sprint auto-analysis coverage for non-passed items.'}
+      />
+    ),
+    preview: (
+      <div>
+        <strong>93%</strong> Auto-classified
+      </div>
+    ),
+    controls: AnalyzerProjectWidgetControls,
   },
   /*
   {

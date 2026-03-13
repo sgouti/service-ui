@@ -23,6 +23,7 @@ import { SIDEBAR_EVENTS } from 'components/main/analytics/events';
 import { useIntl } from 'react-intl';
 import { ALL } from 'common/constants/reservedFilterIds';
 import {
+  ANALYZER_INSIGHTS_PAGE,
   PROJECT_DASHBOARD_PAGE,
   PROJECT_USERDEBUG_PAGE,
   LAUNCHES_PAGE,
@@ -54,7 +55,9 @@ import ProductVersionsIcon from 'common/img/sidebar/product-versions-inline.svg'
 import TestCaseIcon from 'common/img/sidebar/test-case-icon-inline.svg';
 import TestPlansIcon from 'common/img/sidebar/test-plans-icon-inline.svg';
 import { projectNameSelector } from 'controllers/project';
+import { analyzerAttributesSelector } from 'controllers/project';
 import { activeOrganizationNameSelector } from 'controllers/organization';
+import { INSIGHTS_PAGE_ENABLED } from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
 import { OrganizationsControlWithPopover } from '../../organizationsControl';
 import { messages } from '../../messages';
 import { useUserPermissions } from 'hooks/useUserPermissions';
@@ -74,7 +77,9 @@ export const ProjectSidebar = ({ onClickNavBtn }) => {
   const { organizationSlug, projectSlug } = useSelector(urlOrganizationAndProjectSelector);
   const organizationName = useSelector(activeOrganizationNameSelector);
   const projectName = useSelector(projectNameSelector);
+  const analyzerAttributes = useSelector(analyzerAttributesSelector);
   const [isOpenOrganizationPopover, setIsOpenOrganizationPopover] = useState(false);
+  const isAnalyzerInsightsEnabled = analyzerAttributes[INSIGHTS_PAGE_ENABLED] !== 'false';
 
   const onClickButton = (eventInfo) => {
     onClickNavBtn();
@@ -136,6 +141,24 @@ export const ProjectSidebar = ({ onClickNavBtn }) => {
         message: formatMessage(messages.debugMode),
         menuOrder: (menuCounter += menuStep),
       },
+      ...(isAnalyzerInsightsEnabled
+        ? [
+            {
+              onClick: (isSidebarCollapsed) =>
+                onClickButton({
+                  itemName: messages.analyzerInsights.defaultMessage,
+                  isSidebarCollapsed,
+                }),
+              link: {
+                type: ANALYZER_INSIGHTS_PAGE,
+                payload: { organizationSlug, projectSlug },
+              },
+              icon: DebugIcon,
+              message: formatMessage(messages.analyzerInsights),
+              menuOrder: (menuCounter += menuStep),
+            },
+          ]
+        : []),
     ];
 
     if (canWorkWithFilters) {

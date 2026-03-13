@@ -295,6 +295,7 @@ export const StepGrid = ({
           events,
           hideEdit: isTestSearchView,
           openInNewTab: isTestSearchView,
+          parentLaunch,
         },
         withFilter: !isTestSearchView,
         filterEventInfo: events.NAME_FILTER,

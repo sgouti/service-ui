@@ -37,3 +37,4 @@ export { CommonWidgetControls } from './commonWidgetControls';
 export { MostPopularPatternsControls } from './mostPopularPatternsControls';
 export { ComponentHealthCheckControls } from './componentHealthCheckControls';
 export { ComponentHealthCheckTableViewControls } from './componentHealthCheckTableViewControls';
+export { AnalyzerProjectWidgetControls } from './analyzerProjectWidgetControls';

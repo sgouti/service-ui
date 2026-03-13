@@ -38,14 +38,17 @@ import AttachmentIcon from 'common/img/attachment-inline.svg';
 import InfoIcon from 'common/img/info-inline.svg';
 import ClockIcon from 'common/img/clock-inline.svg';
 import LogIcon from 'common/img/log-view-inline.svg';
+import { analyzerAttributesSelector } from 'controllers/project';
 import { getSauceLabsConfig } from 'components/integrations/integrationProviders/sauceLabsIntegration/utils';
 import { availableIntegrationsByPluginNameSelector } from 'controllers/plugins';
 import { StackTrace } from 'pages/inside/common/stackTrace';
+import { ROOT_CAUSE_CLUSTERS_ENABLED, FLAKINESS_BADGE_ENABLED } from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
 import { SauceLabsIntegrationButton } from './sauceLabsIntegrationButton';
 import { InfoTabs } from '../infoTabs';
 import { LogItemDetails } from './logItemDetails';
 import { LogItemActivity } from './logItemActivity';
 import { Attachments } from './attachments';
+import { AnalyzerInsightsTab } from './analyzerInsightsTab';
 import { getActionMessage } from '../utils/getActionMessage';
 import styles from './logItemInfoTabs.scss';
 import { LogsGridWrapper } from '../../logsGridWrapper';
@@ -73,6 +76,10 @@ const messages = defineMessages({
     id: 'LogItemInfoTabs.historyTab',
     defaultMessage: 'History of actions',
   },
+  analyzerTab: {
+    id: 'LogItemInfoTabs.analyzerTab',
+    defaultMessage: 'Analyzer',
+  },
 });
 
 const ATTACHMENTS_TAB_ID = 'attachments';
@@ -89,6 +96,7 @@ const ATTACHMENTS_TAB_ID = 'attachments';
     attachments: attachmentItemsSelector(state),
     activeTabId: activeTabIdSelector(state),
     noLogsCollapsing: noLogsCollapsingSelector(state),
+    analyzerAttributes: analyzerAttributesSelector(state),
   }),
   {
     fetchFirstAttachments: fetchFirstAttachmentsAction,
@@ -117,6 +125,7 @@ export class LogItemInfoTabs extends Component {
     }).isRequired,
     activeTabId: PropTypes.string,
     noLogsCollapsing: PropTypes.bool,
+    analyzerAttributes: PropTypes.object,
   };
 
   static defaultProps = {
@@ -126,6 +135,7 @@ export class LogItemInfoTabs extends Component {
     activeTabId: 'logs',
     setActiveTabId: () => {},
     noLogsCollapsing: false,
+    analyzerAttributes: {},
   };
 
   state = {
@@ -191,7 +201,11 @@ export class LogItemInfoTabs extends Component {
       activeRetry,
       logItem,
       noLogsCollapsing,
+      analyzerAttributes,
     } = this.props;
+    const analyzerEnabled =
+      analyzerAttributes?.[ROOT_CAUSE_CLUSTERS_ENABLED] !== 'false' ||
+      analyzerAttributes?.[FLAKINESS_BADGE_ENABLED] !== 'false';
     const history = {
       id: 'history',
       label: formatMessage(messages.historyTab),
@@ -245,6 +259,18 @@ export class LogItemInfoTabs extends Component {
         eventInfo: LOG_PAGE_EVENTS.ITEM_DETAILS_TAB,
       },
     ];
+    if (analyzerEnabled) {
+      tabs.push({
+        id: 'analyzer',
+        label: formatMessage(messages.analyzerTab),
+        icon: InfoIcon,
+        component: AnalyzerInsightsTab,
+        componentProps: {
+          logItem: activeRetry || logItem,
+        },
+        eventInfo: LOG_PAGE_EVENTS.ITEM_DETAILS_TAB,
+      });
+    }
     if (this.isHistoryTabVisible()) {
       tabs.push(history);
     }

@@ -45,4 +45,91 @@
     flex-grow: 1;
     padding: 32px 32px 60px;
   }
+
+  &__insights {
+    display: grid;
+    gap: 20px;
+  }
+
+  &__insights-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+  }
+
+  &__insights-title {
+    color: $COLOR--charcoal-grey;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__insights-subtitle {
+    margin-top: 4px;
+    color: $COLOR--gray-47;
+    font-size: 13px;
+  }
+
+  &__summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  &__summary-card {
+    padding: 16px;
+    border: 1px solid $COLOR--gray-91;
+    border-radius: 12px;
+    background: $COLOR--white-two;
+  }
+
+  &__summary-label {
+    margin-bottom: 8px;
+    color: $COLOR--gray-47;
+    font-size: 12px;
+  }
+
+  &__summary-value {
+    color: $COLOR--charcoal-grey;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  &__release-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-top: 1px solid $COLOR--gray-91;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    th {
+      color: $COLOR--gray-47;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+  }
+
+  &__launch-name {
+    color: $COLOR--charcoal-grey;
+    font-weight: 700;
+  }
+
+  &__launch-time {
+    margin-top: 4px;
+    color: $COLOR--gray-47;
+    font-size: 12px;
+  }
+
+  &__empty {
+    padding: 24px;
+    border: 1px dashed $COLOR--gray-80;
+    border-radius: 12px;
+    color: $COLOR--gray-47;
+    text-align: center;
+  }
 }

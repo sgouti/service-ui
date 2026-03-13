@@ -61,6 +61,10 @@ export const messages = defineMessages({
     id: 'Sidebar.manualLaunchesBtn',
     defaultMessage: 'Manual Launches',
   },
+  analyzerInsights: {
+    id: 'Sidebar.analyzerInsightsBtn',
+    defaultMessage: 'Analyzer Insights',
+  },
   dashboards: {
     id: 'Sidebar.dashboardsBtn',
     defaultMessage: 'Project Dashboards',

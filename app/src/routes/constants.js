@@ -33,6 +33,7 @@ import { ProfilePage } from 'pages/inside/profilePage';
 import { SandboxPage } from 'pages/inside/sandboxPage';
 import { ProjectSettingsPageContainer } from 'pages/inside/projectSettingsPageContainer';
 import { HistoryPage } from 'pages/inside/historyPage';
+import { AnalyzerInsightsPage } from 'pages/inside/analyzerInsightsPage';
 import { UniqueErrorsPage } from 'pages/inside/uniqueErrorsPage';
 import { LoginPage } from 'pages/outside/loginPage';
 import { NotFoundPage } from 'pages/outside/notFoundPage';
@@ -47,6 +48,7 @@ import {
   PROJECT_USERDEBUG_LOG_PAGE,
   LAUNCHES_PAGE,
   HISTORY_PAGE,
+  ANALYZER_INSIGHTS_PAGE,
   OAUTH_SUCCESS,
   PLUGIN_UI_EXTENSION_ADMIN_PAGE,
   PROJECT_PLUGIN_PAGE,
@@ -208,6 +210,7 @@ export const pageRendering = {
     rawContent: true,
   },
   [HISTORY_PAGE]: { component: HistoryPage, layout: ProjectLayout },
+  [ANALYZER_INSIGHTS_PAGE]: { component: AnalyzerInsightsPage, layout: ProjectLayout },
   [UNIQUE_ERRORS_PAGE]: { component: UniqueErrorsPage, layout: ProjectLayout },
   [PLUGIN_UI_EXTENSION_ADMIN_PAGE]: {
     component: AdminUiExtensionPage,

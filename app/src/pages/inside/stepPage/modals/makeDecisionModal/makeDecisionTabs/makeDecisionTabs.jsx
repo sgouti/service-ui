@@ -18,9 +18,16 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useSelector } from 'react-redux';
 import { BubblesLoader } from '@reportportal/ui-kit';
 import Parser from 'html-react-parser';
 import ExternalLinkIcon from 'common/img/go-to-another-page-inline.svg';
+import { analyzerAttributesSelector } from 'controllers/project';
+import {
+  CONFIDENCE_SCORE_ENABLED,
+  HYBRID_SEARCH_INDICATOR_ENABLED,
+  RANKED_SUGGESTIONS_ENABLED,
+} from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
 import {
   COPY_FROM_HISTORY_LINE,
   MACHINE_LEARNING_SUGGESTIONS,
@@ -30,6 +37,35 @@ import { messages } from '../messages';
 import styles from './makeDecisionTabs.scss';
 
 const cx = classNames.bind(styles);
+
+const isFeatureEnabled = (config, key) => config[key] !== 'false';
+
+const normalizeRank = (value) => Math.max(1, Number(value) || 1);
+
+const getConfidenceLabel = (score, formatMessage) => {
+  if (score >= 85) {
+    return formatMessage(messages.confidenceHigh);
+  }
+  if (score >= 60) {
+    return formatMessage(messages.confidenceMedium);
+  }
+  return formatMessage(messages.confidenceLow);
+};
+
+const getRetrievalLabel = (suggestRs, formatMessage) => {
+  const method = `${suggestRs.methodName || ''} ${suggestRs.modelInfo || ''}`.toLowerCase();
+
+  if (method.includes('hybrid')) {
+    return formatMessage(messages.hybridSearch);
+  }
+  if (method.includes('rerank') || method.includes('bge')) {
+    return formatMessage(messages.reranked);
+  }
+  if (method.includes('semantic') || method.includes('embed')) {
+    return formatMessage(messages.semanticSearch);
+  }
+  return formatMessage(messages.keywordSearch);
+};
 
 export const MakeDecisionTabs = ({
   tabs,
@@ -42,10 +78,14 @@ export const MakeDecisionTabs = ({
   isMLSuggestionsAvailable,
 }) => {
   const { formatMessage } = useIntl();
+  const analyzerAttributes = useSelector(analyzerAttributesSelector);
   const [selectedMLSuggest, setSelectedMLSuggest] = useState(null);
   const [animationSuggest, setAnimationSuggest] = useState(true);
   const [selectDefectTab, machineLearningTab, copyFromHistoryLineTab] = tabs;
   const source = modalState.suggestChoice;
+  const showConfidence = isFeatureEnabled(analyzerAttributes, CONFIDENCE_SCORE_ENABLED);
+  const showRank = isFeatureEnabled(analyzerAttributes, RANKED_SUGGESTIONS_ENABLED);
+  const showHybrid = isFeatureEnabled(analyzerAttributes, HYBRID_SEARCH_INDICATOR_ENABLED);
 
   const selectMachineLearningSuggestionItem = (index, itemId) => {
     if (itemId && itemId === source.id && machineLearningTab.isOpen) {
@@ -157,6 +197,25 @@ export const MakeDecisionTabs = ({
                 >
                   <p className={cx('suggest-title')}>{suggestRs.matchScore}%</p>
                   <p className={cx('suggest-text')}>{formatMessage(messages.analyzerSuggestion)}</p>
+                  {(showConfidence || showRank || showHybrid) && (
+                    <div className={cx('suggest-chip-row')}>
+                      {showConfidence && (
+                        <span className={cx('suggest-chip')}>
+                          {getConfidenceLabel(suggestRs.matchScore, formatMessage)}
+                        </span>
+                      )}
+                      {showRank && (
+                        <span className={cx('suggest-chip', 'suggest-rank')}>
+                          {formatMessage(messages.rank)} #{normalizeRank(suggestRs.resultPosition)}
+                        </span>
+                      )}
+                      {showHybrid && (
+                        <span className={cx('suggest-chip')}>
+                          {getRetrievalLabel(suggestRs, formatMessage)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
           </div>

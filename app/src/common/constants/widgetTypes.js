@@ -37,3 +37,5 @@ export const MOST_POPULAR_PATTERNS = 'topPatternTemplates';
 export const COMPONENT_HEALTH_CHECK = 'componentHealthCheck';
 export const COMPONENT_HEALTH_CHECK_TABLE = 'componentHealthCheckTable';
 export const TEST_CASE_SEARCH = 'testCaseSearch';
+export const TRIAGE_AGING_HEATMAP = 'triageAgingHeatmap';
+export const ANALYZER_COVERAGE_KPI = 'analyzerCoverageKpi';

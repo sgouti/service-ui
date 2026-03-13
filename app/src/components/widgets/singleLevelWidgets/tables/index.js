@@ -20,6 +20,8 @@ import { UniqueBugsTable } from './uniqueBugsTable';
 import { LaunchesTable } from './launchesTable';
 import { ProjectActivity } from './projectActivity';
 import { ProductStatus } from './productStatus';
+import { TriageAgingHeatmap } from './triageAgingHeatmap';
+import { AnalyzerCoverageKpi } from './analyzerCoverageKpi';
 
 export {
   FlakyTests,
@@ -28,4 +30,6 @@ export {
   LaunchesTable,
   ProjectActivity,
   ProductStatus,
+  TriageAgingHeatmap,
+  AnalyzerCoverageKpi,
 };

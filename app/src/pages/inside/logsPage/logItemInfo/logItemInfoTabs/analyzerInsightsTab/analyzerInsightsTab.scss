@@ -1,0 +1,91 @@
+.container {
+  display: grid;
+  gap: 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid $COLOR--gray-91;
+  border-radius: 8px;
+  background: $COLOR--white-two;
+}
+
+.label {
+  margin-bottom: 6px;
+  color: $COLOR--gray-47;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.value {
+  color: $COLOR--charcoal-grey;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.caption {
+  margin-top: 6px;
+  color: $COLOR--gray-47;
+  font-size: 12px;
+}
+
+.panel {
+  padding: 12px;
+  border: 1px solid $COLOR--gray-91;
+  border-radius: 8px;
+  background: $COLOR--white-two;
+}
+
+.panel-title {
+  margin-bottom: 10px;
+  color: $COLOR--charcoal-grey;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.history-row,
+.cluster-row {
+  display: grid;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid $COLOR--gray-91;
+}
+
+.history-row {
+  grid-template-columns: 1fr 90px 140px;
+}
+
+.cluster-row {
+  grid-template-columns: 80px 1fr;
+}
+
+.strong {
+  color: $COLOR--charcoal-grey;
+  font-weight: 700;
+}
+
+.muted {
+  color: $COLOR--gray-47;
+}
+
+.empty-state {
+  padding: 16px;
+  border: 1px dashed $COLOR--gray-80;
+  border-radius: 8px;
+  color: $COLOR--gray-47;
+  text-align: center;
+}
+
+@media (max-width: $SCREEN_MD_MAX) {
+  .history-row,
+  .cluster-row {
+    grid-template-columns: 1fr;
+  }
+}

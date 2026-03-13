@@ -38,6 +38,7 @@ import {
   PROJECT_USERDEBUG_LOG_PAGE,
   PROJECT_USERDEBUG_PAGE,
   HISTORY_PAGE,
+  ANALYZER_INSIGHTS_PAGE,
   UNIQUE_ERRORS_PAGE,
   ALL_USERS_PAGE,
   SERVER_SETTINGS_PAGE,
@@ -104,6 +105,7 @@ import { fetchLogPageData } from 'controllers/log';
 import { fetchHistoryPageInfoAction } from 'controllers/itemsHistory';
 import { setSessionItem, updateStorageItem } from 'common/utils/storageUtils';
 import { fetchClustersAction } from 'controllers/uniqueErrors';
+import { fetchAnalyzerInsightsAction } from 'controllers/analyzerInsights';
 import {
   GET_TEST_CASE_DETAILS,
   getFoldersAction,
@@ -388,6 +390,12 @@ const routesMap = {
     path: '/organizations/:organizationSlug/projects/:projectSlug/launches/:filterId/:testItemIds+/history',
     thunk: (dispatch) => {
       dispatch(fetchHistoryPageInfoAction());
+    },
+  },
+  [ANALYZER_INSIGHTS_PAGE]: {
+    path: '/organizations/:organizationSlug/projects/:projectSlug/analyzer-insights',
+    thunk: (dispatch) => {
+      dispatch(fetchAnalyzerInsightsAction({ historyDepth: 10 }));
     },
   },
   [UNIQUE_ERRORS_PAGE]: {

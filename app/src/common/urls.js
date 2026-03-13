@@ -384,6 +384,12 @@ export const URLS = {
   runUniqueErrorAnalysis: (projectKey) => `${urlBase}${projectKey}/launch/cluster`,
   clusterByLaunchId: (projectKey, launchId, query) =>
     `${urlBase}${projectKey}/launch/cluster/${launchId}${getQueryParams(query)}`,
+  analyzerInsights: (projectKey, query = {}) =>
+    `${urlBase}${projectKey}/analyzer/insights${getQueryParams(query)}`,
+  analyzerItemFlakiness: (projectKey, itemId, query = {}) =>
+    `${urlBase}${projectKey}/analyzer/insights/item/${itemId}/flakiness${getQueryParams(query)}`,
+  analyzerTriageAging: (projectKey) => `${urlBase}${projectKey}/triage/aging`,
+  analyzerCoverage: (projectKey) => `${urlBase}${projectKey}/analyzer/coverage`,
   onboarding: (page = 'GENERAL') => `${urlBase}onboarding?page=${page}`,
   instanceSettings: () => `${urlBase}settings`,
 

@@ -1,0 +1,284 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $COLOR--gray-47;
+}
+
+.select {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid $COLOR--gray-80;
+  border-radius: 4px;
+  background: $COLOR--white-two;
+}
+
+.tab-strip {
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px;
+  background: $COLOR--gray-91;
+  border-radius: 999px;
+}
+
+.tab-button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab-button-active {
+  background: $COLOR--topaz-2;
+  color: $COLOR--white-two;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 18px;
+  border: 1px solid $COLOR--gray-91;
+  border-radius: 12px;
+  background: $COLOR--white-two;
+}
+
+.card-label {
+  font-size: 12px;
+  color: $COLOR--gray-47;
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.card-caption {
+  margin-top: 8px;
+  font-size: 12px;
+  color: $COLOR--gray-47;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.panel {
+  border: 1px solid $COLOR--gray-91;
+  border-radius: 12px;
+  background: $COLOR--white-two;
+  padding: 18px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.panel-note {
+  font-size: 12px;
+  color: $COLOR--gray-47;
+}
+
+.heatmap-row,
+.metric-row,
+.cluster-row,
+.quarantine-row,
+.history-row {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid $COLOR--gray-91;
+}
+
+.heatmap-row {
+  grid-template-columns: 120px 1fr 44px;
+}
+
+.metric-row {
+  grid-template-columns: 1fr 72px 72px 72px;
+}
+
+.cluster-row {
+  grid-template-columns: 72px 88px 1fr;
+}
+
+.quarantine-row {
+  grid-template-columns: minmax(180px, 1fr) 90px 96px 100px;
+}
+
+.history-row {
+  grid-template-columns: 1fr 90px 120px;
+}
+
+.bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: $COLOR--gray-91;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $COLOR--orange-red, $COLOR--topaz-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba($COLOR--orange-red, 0.12);
+  color: $COLOR--orange-red;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.badge-low {
+  background: rgba($COLOR--topaz-2, 0.12);
+  color: $COLOR--topaz-2;
+}
+
+.metric-positive {
+  color: $COLOR--topaz-2;
+  font-weight: 700;
+}
+
+.metric-negative {
+  color: $COLOR--orange-red;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 24px;
+  border: 1px dashed $COLOR--gray-80;
+  border-radius: 12px;
+  color: $COLOR--gray-47;
+  text-align: center;
+}
+
+.muted {
+  color: $COLOR--gray-47;
+}
+
+.strong {
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.table-head {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 10px;
+  color: $COLOR--gray-47;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.table-head-metric {
+  grid-template-columns: 1fr 72px 72px 72px;
+}
+
+.table-head-cluster {
+  grid-template-columns: 72px 88px 1fr;
+}
+
+.table-head-quarantine {
+  grid-template-columns: minmax(180px, 1fr) 90px 96px 100px;
+}
+
+.table-head-history {
+  grid-template-columns: 1fr 90px 120px;
+}
+
+.release-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.release-table th,
+.release-table td {
+  padding: 10px 12px;
+  border-top: 1px solid $COLOR--gray-91;
+  text-align: left;
+  font-size: 12px;
+}
+
+.release-table th {
+  color: $COLOR--gray-47;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.modal-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.modal-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: $SCREEN_MD_MAX) {
+  .metric-row,
+  .table-head-metric,
+  .cluster-row,
+  .table-head-cluster,
+  .quarantine-row,
+  .table-head-quarantine,
+  .history-row,
+  .table-head-history,
+  .modal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .heatmap-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -25,10 +25,12 @@ import { fromNowFormat } from 'common/utils';
 import { SAUCE_LABS, SAUCE_LABS_TITLE } from 'common/constants/pluginNames';
 
 import { isStepLevelSelector, formatItemName } from 'controllers/testItem';
+import { analyzerAttributesSelector } from 'controllers/project';
 import {
   availableIntegrationsByPluginNameSelector,
   uiExtensionLaunchItemComponentsSelector,
 } from 'controllers/plugins';
+import { urlOrganizationAndProjectSelector } from 'controllers/pages';
 import { IN_PROGRESS } from 'common/constants/testStatuses';
 import { ANALYZER_TYPES } from 'common/constants/analyzerTypes';
 import { RETENTION_POLICY } from 'common/constants/retentionPolicy';
@@ -46,6 +48,7 @@ import { withTooltip } from 'components/main/tooltips/tooltip';
 import { TextTooltip } from 'components/main/tooltips/textTooltip';
 import { ExtensionLoader, extensionType } from 'components/extensionLoader';
 import ExternalLinkIcon from 'common/img/open-in-rounded-inline.svg';
+import { INSIGHTS_PAGE_ENABLED } from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
 import { AttributesBlock } from './attributesBlock';
 import { OwnerBlock } from './ownerBlock';
 import { RetriesCounter } from './retriesCounter';
@@ -57,6 +60,10 @@ const messages = defineMessages({
   retryTooltip: {
     id: 'ItemInfo.RetryTooltip',
     defaultMessage: 'Launch has retries of the test cases',
+  },
+  insights: {
+    id: 'ItemInfo.insights',
+    defaultMessage: 'Insights',
   },
 });
 
@@ -73,6 +80,8 @@ const ItemNameTooltip = withTooltip({
   sauceLabsIntegrations: availableIntegrationsByPluginNameSelector(state, SAUCE_LABS),
   extensions: uiExtensionLaunchItemComponentsSelector(state),
   isStepLevel: isStepLevelSelector(state),
+  analyzerAttributes: analyzerAttributesSelector(state),
+  organizationAndProject: urlOrganizationAndProjectSelector(state),
 }))
 @track()
 export class ItemInfo extends Component {
@@ -85,6 +94,8 @@ export class ItemInfo extends Component {
     isStepLevel: PropTypes.bool,
     hideEdit: PropTypes.bool,
     extensions: PropTypes.arrayOf(extensionType),
+    analyzerAttributes: PropTypes.object,
+    organizationAndProject: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
     tracking: PropTypes.shape({
       trackEvent: PropTypes.func,
       getTrackingData: PropTypes.func,
@@ -108,6 +119,8 @@ export class ItemInfo extends Component {
     onClickRetries: () => {},
     refFunction: null,
     extensions: [],
+    analyzerAttributes: {},
+    organizationAndProject: '',
     hideDescription: false,
   };
 
@@ -117,6 +130,31 @@ export class ItemInfo extends Component {
       onEditItem(this.props.value);
       this.props.tracking.trackEvent(events.CLICK_EDIT_ICON);
     }
+  };
+
+  openAnalyzerInsights = () => {
+    const { organizationAndProject, value, customProps } = this.props;
+    if (typeof organizationAndProject !== 'object') {
+      return;
+    }
+
+    const launchId = customProps.parentLaunch?.id;
+    if (!launchId || !value.id) {
+      return;
+    }
+
+    const { organizationSlug, projectSlug } = organizationAndProject;
+    const query = new URLSearchParams({
+      launchId: String(launchId),
+      itemId: String(value.id),
+      itemName: value.name || '',
+      tab: 'quarantine',
+    });
+    window.location.assign(
+      `/organizations/${encodeURIComponent(organizationSlug)}/projects/${encodeURIComponent(
+        projectSlug,
+      )}/analyzer-insights?${query.toString()}`,
+    );
   };
 
   renderSauceLabsLabel = () => {
@@ -143,6 +181,7 @@ export class ItemInfo extends Component {
       customProps,
       extensions,
       hideDescription,
+      analyzerAttributes,
     } = this.props;
 
     const startTime = new Date(value.startTime).getTime();
@@ -159,6 +198,10 @@ export class ItemInfo extends Component {
       const { events } = customProps;
       events.CLICK_ITEM_NAME && tracking.trackEvent(events.CLICK_ITEM_NAME);
     };
+
+    const analyzerInsightsEnabled = analyzerAttributes?.[INSIGHTS_PAGE_ENABLED] !== 'false';
+    const canOpenAnalyzerInsights =
+      analyzerInsightsEnabled && !!customProps.parentLaunch?.id && !!value.id;
 
     return (
       <div ref={refFunction} className={cx('item-info')}>
@@ -193,6 +236,15 @@ export class ItemInfo extends Component {
               <div className={cx('item-badge', 'pattern-analysis')}>Pattern-analysis</div>
             )}
             {value.rerun && <div className={cx('item-badge', 'rerun')}>Rerun</div>}
+            {canOpenAnalyzerInsights && (
+              <button
+                type="button"
+                className={cx('insights-link')}
+                onClick={this.openAnalyzerInsights}
+              >
+                {intl.formatMessage(messages.insights)}
+              </button>
+            )}
             {!hideEdit && (
               <span className={cx('edit-icon')} onClick={this.handleEditItem}>
                 {Parser(PencilIcon)}

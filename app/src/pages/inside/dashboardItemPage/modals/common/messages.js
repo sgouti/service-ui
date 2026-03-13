@@ -16,6 +16,7 @@
 
 import { defineMessages } from 'react-intl';
 import {
+  ANALYZER_COVERAGE_KPI,
   COMPONENT_HEALTH_CHECK,
   COMPONENT_HEALTH_CHECK_TABLE,
   CUMULATIVE_TREND,
@@ -37,6 +38,7 @@ import {
   PROJECT_ACTIVITY,
   TEST_CASE_SEARCH,
   TEST_CASES_GROWTH_TREND,
+  TRIAGE_AGING_HEATMAP,
   UNIQUE_BUGS_TABLE,
 } from 'common/constants/widgetTypes';
 
@@ -128,6 +130,14 @@ export const widgetTypesMessages = defineMessages({
   [TEST_CASE_SEARCH]: {
     id: 'Widgets.Name.testCaseSearchTable',
     defaultMessage: 'Test case search',
+  },
+  [TRIAGE_AGING_HEATMAP]: {
+    id: 'Widgets.Name.triageAgingHeatmap',
+    defaultMessage: 'Triage Health',
+  },
+  [ANALYZER_COVERAGE_KPI]: {
+    id: 'Widgets.Name.analyzerCoverageKpi',
+    defaultMessage: 'Auto-Analysis Coverage',
   },
   /*
   [PRODUCT_STATUS]: {

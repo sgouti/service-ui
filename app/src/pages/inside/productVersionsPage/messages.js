@@ -29,6 +29,10 @@ export const messages = defineMessages({
     id: 'ProductVersionsPage.generalDocumentation',
     defaultMessage: 'General documentation',
   },
+  releaseInsights: {
+    id: 'ProductVersionsPage.releaseInsights',
+    defaultMessage: 'Release insights',
+  },
   addProductVersionButtonText: {
     id: 'ProductVersionsPage.addProductVersionButtonText',
     defaultMessage: 'Add Product version',

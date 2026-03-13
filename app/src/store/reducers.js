@@ -42,6 +42,7 @@ import { instanceReducer } from 'controllers/instance';
 import { pluginsReducer } from 'controllers/plugins';
 import { initialDataReadyReducer } from 'controllers/initialData';
 import { uniqueErrorsReducer } from 'controllers/uniqueErrors';
+import { analyzerInsightsReducer } from 'controllers/analyzerInsights';
 import { organizationsReducer } from 'controllers/instance/organizations';
 import { exportsReducer } from 'controllers/exports/reducer';
 import { testCaseReducer } from 'controllers/testCase';
@@ -71,6 +72,7 @@ export default {
   step: stepReducer,
   log: logReducer,
   uniqueErrors: uniqueErrorsReducer,
+  analyzerInsights: analyzerInsightsReducer,
   itemsHistory: itemsHistoryReducer,
   administrate: instanceReducer,
   plugins: pluginsReducer,

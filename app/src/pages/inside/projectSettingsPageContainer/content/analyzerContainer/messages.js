@@ -33,6 +33,10 @@ export const messages = defineMessages({
     id: 'Analyzer.uniqueErrors',
     defaultMessage: 'Unique Errors',
   },
+  insights: {
+    id: 'Analyzer.insights',
+    defaultMessage: 'Insights',
+  },
   updateSuccessNotification: {
     id: 'Analyzer.updateSuccessNotification',
     defaultMessage: 'Project settings were successfully updated',

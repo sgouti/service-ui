@@ -39,8 +39,9 @@ import PlusIcon from 'common/img/plus-button-inline.svg';
 
 import styles from './productVersionsPage.scss';
 import { messages } from './messages';
-import { LIST_OF_VERSIONS, GENERAL_DOCUMENTATION } from './constants';
+import { LIST_OF_VERSIONS, GENERAL_DOCUMENTATION, RELEASE_INSIGHTS } from './constants';
 import { ListOfVersions } from './listOfVersions';
+import { ReleaseInsightsTab } from './releaseInsightsTab';
 
 const cx = classNames.bind(styles);
 
@@ -96,6 +97,11 @@ export const ProductVersionsPageContent = () => {
         name: formatMessage(messages.generalDocumentation),
         link: createTabLink(GENERAL_DOCUMENTATION),
         component: <MarkdownEditor placeholder="Simple example" />,
+      },
+      [RELEASE_INSIGHTS]: {
+        name: formatMessage(messages.releaseInsights),
+        link: createTabLink(RELEASE_INSIGHTS),
+        component: <ReleaseInsightsTab />,
       },
     }),
     [createTabLink, versions],

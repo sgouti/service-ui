@@ -36,6 +36,7 @@ import { initialDataSagas } from 'controllers/initialData';
 import { pageSagas } from 'controllers/pages';
 import { pluginSagas } from 'controllers/plugins';
 import { uniqueErrorsSagas } from 'controllers/uniqueErrors';
+import { analyzerInsightsSagas } from 'controllers/analyzerInsights';
 import { organizationsSagas } from 'controllers/instance/organizations';
 import { organizationSagas } from 'controllers/organization';
 import { serverSettingsSagas } from 'controllers/appInfo';
@@ -69,6 +70,7 @@ const sagas = [
   pageSagas,
   pluginSagas,
   uniqueErrorsSagas,
+  analyzerInsightsSagas,
   exportsSagas,
   testCaseSagas,
   testPlanSagas,

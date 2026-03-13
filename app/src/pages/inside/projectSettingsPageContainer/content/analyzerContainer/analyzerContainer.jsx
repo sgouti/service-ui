@@ -47,12 +47,14 @@ import {
   INDEXING_RUNNING,
   AUTO_ANALYSIS,
   INDEX_SETTINGS,
+  INSIGHTS,
   SIMILAR_ITEMS,
   UNIQUE_ERRORS,
   NUMBER_OF_LOG_LINES,
 } from './constants';
 import { AutoAnalysis } from './autoAnalysis';
 import { IndexSettings } from './indexSettings';
+import { Insights } from './insights';
 import { SimilarItems } from './similarItems';
 import { UniqueErrors } from './uniqueErrors';
 import styles from './analyzerContainer.scss';
@@ -202,6 +204,17 @@ export const AnalyzerContainer = ({ setHeaderNodes }) => {
             hasPermission={canUpdateSettings}
             isAnalyzerServiceAvailable={isAnalyzerServiceAvailable}
             analyzerUnavailableTitle={analyzerUnavailableTitle}
+          />
+        ),
+      },
+      [INSIGHTS]: {
+        name: formatMessage(messages.insights),
+        link: createTabLink(INSIGHTS),
+        component: (
+          <Insights
+            analyzerConfig={analyzerConfig}
+            onFormSubmit={updateProjectConfig}
+            hasPermission={canUpdateSettings}
           />
         ),
       },

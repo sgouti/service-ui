@@ -186,6 +186,58 @@ export const messages = defineMessages({
     id: 'MakeDecisionModal.analyzerSuggestion',
     defaultMessage: 'Analyzer Suggestion',
   },
+  confidence: {
+    id: 'MakeDecisionModal.confidence',
+    defaultMessage: 'Confidence',
+  },
+  confidenceHigh: {
+    id: 'MakeDecisionModal.confidenceHigh',
+    defaultMessage: 'High',
+  },
+  confidenceMedium: {
+    id: 'MakeDecisionModal.confidenceMedium',
+    defaultMessage: 'Medium',
+  },
+  confidenceLow: {
+    id: 'MakeDecisionModal.confidenceLow',
+    defaultMessage: 'Low',
+  },
+  rank: {
+    id: 'MakeDecisionModal.rank',
+    defaultMessage: 'Rank',
+  },
+  keywordRank: {
+    id: 'MakeDecisionModal.keywordRank',
+    defaultMessage: 'Keyword Rank',
+  },
+  retrieval: {
+    id: 'MakeDecisionModal.retrieval',
+    defaultMessage: 'Retrieval',
+  },
+  semanticScore: {
+    id: 'MakeDecisionModal.semanticScore',
+    defaultMessage: 'Semantic Score',
+  },
+  model: {
+    id: 'MakeDecisionModal.model',
+    defaultMessage: 'Model',
+  },
+  hybridSearch: {
+    id: 'MakeDecisionModal.hybridSearch',
+    defaultMessage: 'Hybrid',
+  },
+  semanticSearch: {
+    id: 'MakeDecisionModal.semanticSearch',
+    defaultMessage: 'Semantic',
+  },
+  keywordSearch: {
+    id: 'MakeDecisionModal.keywordSearch',
+    defaultMessage: 'Keyword',
+  },
+  reranked: {
+    id: 'MakeDecisionModal.reranked',
+    defaultMessage: 'Reranked',
+  },
   noSuggestions: {
     id: 'MakeDecisionModal.noSuggestions',
     defaultMessage: 'No Analyzer Suggestions',
