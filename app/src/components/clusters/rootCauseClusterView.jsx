@@ -28,7 +28,7 @@ const messages = defineMessages({
   loading: { id: 'RootCauseClusterView.loading', defaultMessage: 'Loading...' },
   emptyShort: {
     id: 'RootCauseClusterView.emptyShort',
-    defaultMessage: 'Clustering requires 5+ failures.',
+    defaultMessage: 'Clustering requires 10+ failures.',
   },
   emptyLong: {
     id: 'RootCauseClusterView.emptyLong',

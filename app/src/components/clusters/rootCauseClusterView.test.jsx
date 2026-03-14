@@ -63,7 +63,7 @@ describe('RootCauseClusterView', () => {
       <RootCauseClusterView clusters={[]} projectKey="demo" launchId={101} totalFailures={3} />,
     );
     expect(normalizeChildren(emptyWrapper.find('.empty-state').at(0).prop('children'))).toContain(
-      'Clustering requires 5+ failures.',
+      'Clustering requires 10+ failures.',
     );
   });
 
