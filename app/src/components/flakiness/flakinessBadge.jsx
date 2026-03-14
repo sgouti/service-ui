@@ -12,6 +12,8 @@ import styles from './flakinessBadge.scss';
 
 const cx = classNames.bind(styles);
 
+const unsupportedProjects = new Set();
+
 const messages = defineMessages({
   openDetails: {
     id: 'FlakinessBadge.openDetails',
@@ -26,7 +28,7 @@ const getLabelFromScore = (score) => {
     return null;
   }
   if (score <= 20) {
-    return 'STABLE';
+    return null;
   }
   if (score <= 50) {
     return 'UNSTABLE';
@@ -50,6 +52,16 @@ const getToneClass = (score) => {
   return 'critical';
 };
 
+const isUnsupportedAnalyzerEndpointError = (error) => {
+  const status = error?.status || error?.statusCode || error?.response?.status;
+
+  if (status === 404 || status === 501) {
+    return true;
+  }
+
+  return /404|not found/i.test(String(error?.message || ''));
+};
+
 export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, onOpenInsights = null }) => {
   const { formatMessage } = useIntl();
   const projectKey = useSelector(projectKeySelector);
@@ -64,7 +76,7 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
     let cancelled = false;
 
     const loadDetails = async () => {
-      if (!enabled || !projectKey || !itemId) {
+      if (!enabled || !projectKey || !itemId || unsupportedProjects.has(projectKey)) {
         setLoading(false);
         return;
       }
@@ -76,6 +88,9 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
         }
       } catch (error) {
         if (!cancelled) {
+          if (projectKey && isUnsupportedAnalyzerEndpointError(error)) {
+            unsupportedProjects.add(projectKey);
+          }
           setDetails(null);
         }
       } finally {
@@ -93,7 +108,9 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
   }, [enabled, itemId, projectKey]);
 
   const score = getScore(details);
+  const totalRuns = Number(details?.totalRuns) || 0;
   const label = useMemo(() => details?.label || getLabelFromScore(score), [details, score]);
+  const hasScore = score !== null && score !== undefined;
 
   if (!enabled) {
     return null;
@@ -103,7 +120,7 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
     return <span className={cx('badge-skeleton')} aria-hidden="true" />;
   }
 
-  if (score === null || score === undefined || !label) {
+  if (!label) {
     return null;
   }
 
@@ -114,10 +131,10 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
         className={cx('badge', getToneClass(score))}
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        aria-label={`${formatMessage(messages.openDetails)} ${label} ${score}`}
+        aria-label={`${formatMessage(messages.openDetails)} ${label}${hasScore ? ` ${score}` : ''}`}
       >
         <span className={cx('badge-label')}>{label}</span>
-        <span className={cx('badge-score')}>{score}</span>
+        {hasScore && <span className={cx('badge-score')}>{score}</span>}
       </button>
       {open && (
         <FlakinessDetailPanel

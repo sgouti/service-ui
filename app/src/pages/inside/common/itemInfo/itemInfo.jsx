@@ -71,6 +71,28 @@ const messages = defineMessages({
   },
 });
 
+const isLaunchInProgress = (status) => String(status || '').toLowerCase() === 'in_progress';
+
+const shouldShowFlakinessBadge = ({ enabled, isStepLevel, item, parentLaunch }) => {
+  if (!enabled || !item?.id) {
+    return false;
+  }
+
+  if (isStepLevel) {
+    return false;
+  }
+
+  if (item.hasChildren !== false || item.hasStats === false) {
+    return false;
+  }
+
+  if (parentLaunch?.status && isLaunchInProgress(parentLaunch.status)) {
+    return false;
+  }
+
+  return true;
+};
+
 const ItemNameTooltip = withTooltip({
   TooltipComponent: TextTooltip,
   data: {
@@ -205,6 +227,12 @@ export class ItemInfo extends Component {
 
     const analyzerInsightsEnabled = analyzerAttributes?.[INSIGHTS_PAGE_ENABLED] !== 'false';
     const flakinessBadgeEnabled = analyzerAttributes?.[FLAKINESS_BADGE_ENABLED] !== 'false';
+    const flakinessBadgeVisible = shouldShowFlakinessBadge({
+      enabled: flakinessBadgeEnabled,
+      isStepLevel,
+      item: value,
+      parentLaunch: customProps.parentLaunch,
+    });
     const canOpenAnalyzerInsights =
       analyzerInsightsEnabled && !!customProps.parentLaunch?.id && !!value.id;
 
@@ -244,8 +272,8 @@ export class ItemInfo extends Component {
             <FlakinessBadge
               itemId={value.id}
               itemName={value.name}
-              enabled={flakinessBadgeEnabled}
-              onOpenInsights={canOpenAnalyzerInsights ? this.openAnalyzerInsights : null}
+              enabled={flakinessBadgeVisible}
+              onOpenInsights={flakinessBadgeVisible && canOpenAnalyzerInsights ? this.openAnalyzerInsights : null}
             />
             {canOpenAnalyzerInsights && (
               <button

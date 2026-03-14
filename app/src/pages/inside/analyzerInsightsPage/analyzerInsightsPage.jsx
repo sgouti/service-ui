@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames/bind';
 import { defineMessages, useIntl } from 'react-intl';
@@ -138,6 +139,10 @@ const messages = defineMessages({
     id: 'AnalyzerInsightsPage.flakinessDetails',
     defaultMessage: 'Flakiness Details',
   },
+  flakinessUnavailable: {
+    id: 'AnalyzerInsightsPage.flakinessUnavailable',
+    defaultMessage: 'Flakiness details are unavailable because the analyzer endpoint is not supported by the current backend.',
+  },
   historyRuns: { id: 'AnalyzerInsightsPage.historyRuns', defaultMessage: 'History Runs' },
   lastChange: { id: 'AnalyzerInsightsPage.lastChange', defaultMessage: 'Last Status Change' },
   notAvailable: { id: 'AnalyzerInsightsPage.notAvailable', defaultMessage: 'Not available' },
@@ -245,12 +250,59 @@ const getQuarantineStats = (summary, launchId) => {
 
 const getCurrentLaunchMetrics = (summary, launchId) => getMetricMap(summary, launchId);
 
+const coveragePropType = PropTypes.shape({
+  coveragePercent: PropTypes.number,
+  autoAnalyzedItems: PropTypes.number,
+  nonPassedItems: PropTypes.number,
+});
+
+const comparisonMetricPropType = PropTypes.shape({
+  field: PropTypes.string,
+  label: PropTypes.string,
+  baseline: PropTypes.number,
+  current: PropTypes.number,
+  delta: PropTypes.number,
+});
+
+const summaryPropType = PropTypes.shape({
+  coverage: coveragePropType,
+  quarantine: PropTypes.arrayOf(PropTypes.object),
+  triageAging: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      count: PropTypes.number,
+    }),
+  ),
+  comparison: PropTypes.shape({
+    metrics: PropTypes.arrayOf(comparisonMetricPropType),
+  }),
+});
+
 const FlakinessDetailsModal = ({ projectKey, itemId, itemName }) => {
   const { formatMessage } = useIntl();
   const [details, setDetails] = useState(null);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    fetch(URLS.analyzerItemFlakiness(projectKey, itemId, { historyDepth: 10 })).then(setDetails);
+    let cancelled = false;
+
+    fetch(URLS.analyzerItemFlakiness(projectKey, itemId, { historyDepth: 10 }))
+      .then((response) => {
+        if (!cancelled) {
+          setDetails(response);
+          setHasError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDetails(null);
+          setHasError(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [projectKey, itemId]);
 
   return (
@@ -258,13 +310,21 @@ const FlakinessDetailsModal = ({ projectKey, itemId, itemName }) => {
       title={`${formatMessage(messages.flakinessDetails)}: ${itemName}`}
       cancelButton={{ text: formatMessage(COMMON_LOCALE_KEYS.CLOSE) }}
     >
-      {!details ? (
+      {!details && !hasError ? (
         <SpinningPreloader />
+      ) : hasError ? (
+        <div className={cx('empty-state')}>{formatMessage(messages.flakinessUnavailable)}</div>
       ) : (
         <FlakinessDetailPanel itemName={itemName} details={details} />
       )}
     </ModalLayout>
   );
+};
+
+FlakinessDetailsModal.propTypes = {
+  projectKey: PropTypes.string.isRequired,
+  itemId: PropTypes.number.isRequired,
+  itemName: PropTypes.string.isRequired,
 };
 
 const OverviewCards = ({ summary, formatMessage }) => (
@@ -299,6 +359,11 @@ const OverviewCards = ({ summary, formatMessage }) => (
   </div>
 );
 
+OverviewCards.propTypes = {
+  summary: summaryPropType.isRequired,
+  formatMessage: PropTypes.func.isRequired,
+};
+
 export const AnalyzerInsightsPage = () => {
   const { formatMessage } = useIntl();
   const dispatch = useDispatch();
@@ -309,10 +374,10 @@ export const AnalyzerInsightsPage = () => {
   const loading = useSelector(analyzerInsightsLoadingSelector);
   const clusters = useSelector(analyzerInsightsClustersSelector);
   const clustersLoading = useSelector(analyzerInsightsClustersLoadingSelector);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedLaunchId, setSelectedLaunchId] = useState(null);
-  const [selectedCompareId, setSelectedCompareId] = useState(null);
-  const [deepLinkHandled, setDeepLinkHandled] = useState(false);
+  const [activeTabOverride, setActiveTabOverride] = useState(null);
+  const [selectedLaunchIdOverride, setSelectedLaunchIdOverride] = useState(null);
+  const [selectedCompareIdOverride, setSelectedCompareIdOverride] = useState(null);
+  const handledDeepLinkRef = useRef(null);
 
   const requestedLaunchId = Number(query.launchId) || null;
   const requestedCompareId = Number(query.compareToId) || null;
@@ -321,19 +386,14 @@ export const AnalyzerInsightsPage = () => {
   const requestedItemName = query.itemName || null;
 
   useEffect(() => {
-    if (requestedTab === 'quarantine') {
-      setActiveTab('quarantine');
-    }
-    if (requestedLaunchId) {
-      setSelectedLaunchId(requestedLaunchId);
-    }
-    if (requestedCompareId) {
-      setSelectedCompareId(requestedCompareId);
-    }
-  }, [requestedCompareId, requestedLaunchId, requestedTab]);
+    const needsInitialLoad = !summary && !loading;
+    const needsRequestedLaunch = !!summary && !!requestedLaunchId && summary.launchId !== requestedLaunchId;
+    const needsRequestedCompare =
+      !!summary &&
+      !!requestedCompareId &&
+      summary.comparison?.baselineLaunchId !== requestedCompareId;
 
-  useEffect(() => {
-    if (!summary && !loading) {
+    if (needsInitialLoad || needsRequestedLaunch || needsRequestedCompare) {
       dispatch(
         fetchAnalyzerInsightsAction({
           historyDepth: 10,
@@ -351,7 +411,12 @@ export const AnalyzerInsightsPage = () => {
   }, [summary?.launchId, dispatch]);
 
   useEffect(() => {
-    if (!requestedItemId || deepLinkHandled || !projectKey) {
+    if (!requestedItemId || !projectKey) {
+      handledDeepLinkRef.current = null;
+      return;
+    }
+
+    if (handledDeepLinkRef.current === requestedItemId) {
       return;
     }
 
@@ -370,9 +435,8 @@ export const AnalyzerInsightsPage = () => {
         ),
       }),
     );
-    setDeepLinkHandled(true);
+    handledDeepLinkRef.current = requestedItemId;
   }, [
-    deepLinkHandled,
     dispatch,
     projectKey,
     requestedItemId,
@@ -394,26 +458,15 @@ export const AnalyzerInsightsPage = () => {
     [analyzerConfig],
   );
 
+  const activeTab =
+    activeTabOverride || (requestedTab === 'quarantine' && features.quarantine ? 'quarantine' : 'overview');
+
   const refreshInsights = (launchId, compareToId) => {
     dispatch(
       fetchAnalyzerInsightsAction({
         historyDepth: 10,
         launchId: launchId || undefined,
         compareToId: compareToId || undefined,
-      }),
-    );
-  };
-
-  const openFlakinessModal = (item) => {
-    dispatch(
-      showModalAction({
-        component: (
-          <FlakinessDetailsModal
-            projectKey={projectKey}
-            itemId={item.itemId}
-            itemName={item.name}
-          />
-        ),
       }),
     );
   };
@@ -442,8 +495,23 @@ export const AnalyzerInsightsPage = () => {
     );
   }
 
-  const currentLaunchId = selectedLaunchId || summary.launchId;
-  const currentCompareId = selectedCompareId || summary.comparison?.baselineLaunchId || '';
+  const currentLaunchId = selectedLaunchIdOverride || requestedLaunchId || summary.launchId;
+  const currentCompareId =
+    selectedCompareIdOverride || requestedCompareId || summary.comparison?.baselineLaunchId || '';
+
+  const openFlakinessModal = (item) => {
+    dispatch(
+      showModalAction({
+        component: (
+          <FlakinessDetailsModal
+            projectKey={projectKey}
+            itemId={item.itemId}
+            itemName={item.name}
+          />
+        ),
+      }),
+    );
+  };
   const quarantineStats = getQuarantineStats(summary, currentLaunchId);
   const currentLaunchMetrics = getCurrentLaunchMetrics(summary, currentLaunchId);
   const currentLaunchFailures = currentLaunchMetrics['statistics$executions$failed'] || 0;
@@ -461,7 +529,7 @@ export const AnalyzerInsightsPage = () => {
                 value={currentLaunchId || ''}
                 onChange={(event) => {
                   const nextLaunchId = Number(event.target.value);
-                  setSelectedLaunchId(nextLaunchId);
+                  setSelectedLaunchIdOverride(nextLaunchId);
                   refreshInsights(nextLaunchId, currentCompareId ? Number(currentCompareId) : null);
                 }}
               >
@@ -480,7 +548,7 @@ export const AnalyzerInsightsPage = () => {
                 value={currentCompareId}
                 onChange={(event) => {
                   const value = event.target.value;
-                  setSelectedCompareId(value ? Number(value) : null);
+                  setSelectedCompareIdOverride(value ? Number(value) : null);
                   refreshInsights(currentLaunchId, value ? Number(value) : null);
                 }}
               >
@@ -496,7 +564,9 @@ export const AnalyzerInsightsPage = () => {
             </div>
             <Button
               aria-label={formatMessage(messages.refresh)}
-              onClick={() => refreshInsights(currentLaunchId, currentCompareId)}
+              onClick={() =>
+                refreshInsights(currentLaunchId, currentCompareId ? Number(currentCompareId) : null)
+              }
             >
               {formatMessage(messages.refresh)}
             </Button>
@@ -507,7 +577,7 @@ export const AnalyzerInsightsPage = () => {
               type="button"
               aria-label={formatMessage(messages.overviewTab)}
               className={cx('tab-button', { 'tab-button-active': activeTab === 'overview' })}
-              onClick={() => setActiveTab('overview')}
+              onClick={() => setActiveTabOverride('overview')}
             >
               {formatMessage(messages.overviewTab)}
             </button>
@@ -516,7 +586,7 @@ export const AnalyzerInsightsPage = () => {
                 type="button"
                 aria-label={formatMessage(messages.quarantineTab)}
                 className={cx('tab-button', { 'tab-button-active': activeTab === 'quarantine' })}
-                onClick={() => setActiveTab('quarantine')}
+                onClick={() => setActiveTabOverride('quarantine')}
               >
                 {formatMessage(messages.quarantineTab)}
                 <span className={cx('tab-count')}>{quarantineStats.quarantineCount}</span>
@@ -557,7 +627,7 @@ export const AnalyzerInsightsPage = () => {
                     <div className={cx('panel-header')}>
                       <div className={cx('panel-title')}>{formatMessage(messages.comparisonDiff)}</div>
                     </div>
-                    {summary.comparison ? (
+                    {summary.comparison?.metrics?.length ? (
                       <>
                         <div className={cx('table-head', 'table-head-metric')}>
                           <div>{formatMessage(messages.compareSummary)}</div>

@@ -11,6 +11,10 @@ const messages = defineMessages({
     id: 'FlakinessDetailPanel.title',
     defaultMessage: 'Flakiness details',
   },
+  status: {
+    id: 'FlakinessDetailPanel.status',
+    defaultMessage: 'Status',
+  },
   score: {
     id: 'FlakinessDetailPanel.score',
     defaultMessage: 'Flaky rate',
@@ -60,6 +64,7 @@ const messages = defineMessages({
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '');
 
 const getScore = (details) => details?.flakinessScore ?? details?.flakyRate ?? null;
+const getLabel = (details) => details?.label ?? null;
 const getTotalRuns = (details) => details?.analyzedRuns ?? details?.totalRuns ?? 0;
 const getTransitions = (details) => details?.alternationRate ?? details?.flakyTransitions ?? 0;
 const getPassRate = (details) => details?.passRate;
@@ -69,6 +74,8 @@ export const FlakinessDetailPanel = ({ itemName = '', details = {}, onOpenInsigh
     const { formatMessage } = useIntl();
     const history = details?.history || [];
     const passRate = getPassRate(details);
+  const score = getScore(details);
+  const label = getLabel(details);
 
     return (
       <div className={cx('detail-panel')} role="dialog" aria-label={formatMessage(messages.title)}>
@@ -89,10 +96,18 @@ export const FlakinessDetailPanel = ({ itemName = '', details = {}, onOpenInsigh
         </div>
 
         <div className={cx('detail-cards')}>
+          {label && (
+            <div className={cx('detail-card')}>
+              <div className={cx('detail-label')}>{formatMessage(messages.status)}</div>
+              <div className={cx('detail-value')}>{label}</div>
+            </div>
+          )}
+          {score !== null && score !== undefined && (
           <div className={cx('detail-card')}>
             <div className={cx('detail-label')}>{formatMessage(messages.score)}</div>
-            <div className={cx('detail-value')}>{getScore(details)}%</div>
+            <div className={cx('detail-value')}>{score}%</div>
           </div>
+          )}
           <div className={cx('detail-card')}>
             <div className={cx('detail-label')}>{formatMessage(messages.totalRuns)}</div>
             <div className={cx('detail-value')}>{getTotalRuns(details)}</div>

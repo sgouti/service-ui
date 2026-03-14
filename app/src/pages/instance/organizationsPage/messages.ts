@@ -110,14 +110,6 @@ export const messages = defineMessages({
     id: 'OrganizationsPage.settings',
     defaultMessage: 'Settings',
   },
-  notUploadedPluginMessage: {
-    id: 'OrganizationsPage.notUploadedPluginMessage',
-    defaultMessage: `Creating an organization requires the 'Organizations' plugin. Please refer to our documentation for more details.`,
-  },
-  pluginIsDisabledMessage: {
-    id: 'OrganizationsPage.pluginIsDisabledMessage',
-    defaultMessage: `Activate the 'Organizations' plugin in settings to enable the creation of organizations`,
-  },
   createOrganizationLabel: {
     id: 'OrganizationsPage.createOrganizationLabel',
     defaultMessage: 'Name',

@@ -15,13 +15,25 @@
  */
 
 import {
+  getItemLevel,
   normalizeTestItem,
   formatItemName,
   groupItemsByParent,
   cleanUpTestItemQuery,
 } from './utils';
+import * as launchLevels from 'common/constants/launchLevels';
+import * as methodTypes from 'common/constants/methodTypes';
 
 describe('controllers/testItem/utils', () => {
+  describe('getItemLevel', () => {
+    test('should keep before and after hooks inside the step flow', () => {
+      expect(getItemLevel(methodTypes.BEFORE_SUITE)).toBe(launchLevels.LEVEL_STEP);
+      expect(getItemLevel(methodTypes.BEFORE_TEST)).toBe(launchLevels.LEVEL_STEP);
+      expect(getItemLevel(methodTypes.BEFORE_METHOD)).toBe(launchLevels.LEVEL_STEP);
+      expect(getItemLevel(methodTypes.AFTER_SUITE)).toBe(launchLevels.LEVEL_STEP);
+    });
+  });
+
   describe('normalizeTestItem', () => {
     test('should add missing defect statistics from project config with count set to 0', () => {
       const defectConfig = {

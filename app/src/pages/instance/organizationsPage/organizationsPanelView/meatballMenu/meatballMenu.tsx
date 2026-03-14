@@ -47,7 +47,6 @@ import {
 import { COMMON_LOCALE_KEYS } from 'common/constants/localization';
 import { fetchFilteredOrganizationsAction } from 'controllers/instance/organizations';
 import { Organization, OrganizationType } from 'controllers/organization';
-import { Plugin, organizationPluginSelector } from 'controllers/plugins';
 import { RenameOrganizationModal } from 'pages/inside/common/modals/renameOrganizationModal';
 import { DeleteOrganizationModal } from '../modals/deleteOrganizationsModal';
 import { messages } from '../../messages';
@@ -64,7 +63,6 @@ export const MeatballMenu = ({ organization }: MeatballMenuProps) => {
   const userRoles = useSelector(userRolesSelector);
   const currentUser = useSelector(userInfoSelector) as UserInfo;
   const assignedOrganizations = useSelector(assignedOrganizationsSelector) as AssignedOrganizations;
-  const organizationPlugin = useSelector(organizationPluginSelector) as Plugin;
   const canUnassign = useCanUnassignOrganization();
   const isAssignedToOrganization = organization.slug in assignedOrganizations;
   const organizationRole = assignedOrganizations[organization.slug]
@@ -161,9 +159,7 @@ export const MeatballMenu = ({ organization }: MeatballMenuProps) => {
         label: formatMessage(COMMON_LOCALE_KEYS.RENAME),
         onClick: handleRenameClick,
         hasPermission:
-          canRenameOrganization(organizationUserRoles) &&
-          organizationPlugin?.enabled &&
-          organization.type !== OrganizationType.PERSONAL,
+          canRenameOrganization(organizationUserRoles) && organization.type !== OrganizationType.PERSONAL,
       },
       {
         label: formatMessage(COMMON_LOCALE_KEYS.UNASSIGN),
@@ -173,7 +169,7 @@ export const MeatballMenu = ({ organization }: MeatballMenuProps) => {
       {
         label: formatMessage(COMMON_LOCALE_KEYS.DELETE),
         onClick: handleDeleteClick,
-        hasPermission: canDeleteOrganization(organizationUserRoles) && organizationPlugin?.enabled,
+        hasPermission: canDeleteOrganization(organizationUserRoles),
         danger: true,
       },
     ],
@@ -187,7 +183,6 @@ export const MeatballMenu = ({ organization }: MeatballMenuProps) => {
       handleDeleteClick,
       organizationUserRoles,
       handleRenameClick,
-      organizationPlugin?.enabled,
     ],
   );
 

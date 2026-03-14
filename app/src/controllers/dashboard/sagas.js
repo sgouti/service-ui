@@ -59,22 +59,23 @@ import {
   deleteDashboardSuccessAction,
   updateDashboardItemSuccessAction,
 } from './actionCreators';
-import { getDashboardNotificationAction, tryParseConfig } from './utils';
+import {
+  getDashboardNotificationAction,
+  sanitizeDashboardSorting,
+  tryParseConfig,
+} from './utils';
 
 function* fetchDashboards({ payload: params }) {
   const projectKey = yield select(activeProjectKeySelector);
   const query = yield select(querySelector);
   const mergedParams = { ...query, ...params };
-  const lockedSorting = 'locked,DESC';
+  const sanitizedParams = {
+    ...mergedParams,
+    [SORTING_KEY]: sanitizeDashboardSorting(mergedParams[SORTING_KEY]),
+  };
   const queryOptions = { arrayFormat: 'repeat' };
 
-  if (Array.isArray(mergedParams[SORTING_KEY])) {
-    mergedParams[SORTING_KEY] = [lockedSorting, ...mergedParams[SORTING_KEY]];
-  } else {
-    mergedParams[SORTING_KEY] = [lockedSorting, mergedParams[SORTING_KEY]].filter(Boolean);
-  }
-
-  yield put(fetchDataAction(NAMESPACE)(URLS.dashboards(projectKey, mergedParams, queryOptions)));
+  yield put(fetchDataAction(NAMESPACE)(URLS.dashboards(projectKey, sanitizedParams, queryOptions)));
 }
 
 function* fetchDashboard() {

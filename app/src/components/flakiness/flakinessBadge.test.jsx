@@ -110,4 +110,58 @@ describe('FlakinessBadge', () => {
 
     expect(wrapper.isEmptyRender()).toBe(true);
   });
+
+  test('renders deterministic unstable badge without a numeric score for short mixed history', async () => {
+    fetch.mockResolvedValueOnce({
+      label: 'UNSTABLE',
+      totalRuns: 4,
+      flakyTransitions: 2,
+      history: [],
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<FlakinessBadge itemId={5} itemName="Checkout flow" enabled />);
+      await flushPromises();
+      await flushPromises();
+    });
+    wrapper.update();
+
+    expect(normalizeChildren(wrapper.find('.badge-label').prop('children'))).toBe('UNSTABLE');
+    expect(wrapper.find('.badge-score')).toHaveLength(0);
+  });
+
+  test('fails silently when short stable history has no backend label', async () => {
+    fetch.mockResolvedValueOnce({
+      totalRuns: 4,
+      history: [],
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<FlakinessBadge itemId={5} itemName="Checkout flow" enabled />);
+      await flushPromises();
+      await flushPromises();
+    });
+    wrapper.update();
+
+    expect(wrapper.isEmptyRender()).toBe(true);
+  });
+
+  test('fails silently when analyzer flakiness endpoint is unsupported', async () => {
+    fetch.mockRejectedValueOnce({
+      statusCode: 404,
+      message: 'Not Found',
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<FlakinessBadge itemId={5} itemName="Checkout flow" enabled />);
+      await flushPromises();
+      await flushPromises();
+    });
+    wrapper.update();
+
+    expect(wrapper.isEmptyRender()).toBe(true);
+  });
 });

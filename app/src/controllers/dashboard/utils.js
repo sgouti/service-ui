@@ -3,7 +3,16 @@ import {
   showDefaultErrorNotification,
   showNotification,
 } from 'controllers/notification';
+import { formatSortingString, parseSortingString } from 'controllers/sorting/utils';
 import { ERROR_CODES } from './constants';
+import { DEFAULT_SORTING } from './constants';
+
+const SUPPORTED_DASHBOARD_SORT_FIELDS = new Set([
+  'creationDate',
+  'description',
+  'name',
+  'owner',
+]);
 
 export function tryParseConfig(config) {
   try {
@@ -23,4 +32,22 @@ export function getDashboardNotificationAction(error, name) {
         values: { name },
       })
     : showDefaultErrorNotification(error);
+}
+
+export function sanitizeDashboardSorting(sortingString) {
+  const { fields, direction } = parseSortingString(sortingString);
+
+  if (!fields.length) {
+    return DEFAULT_SORTING;
+  }
+
+  const hasUnsupportedField = fields.some(
+    (field) => !SUPPORTED_DASHBOARD_SORT_FIELDS.has(field),
+  );
+
+  if (hasUnsupportedField) {
+    return DEFAULT_SORTING;
+  }
+
+  return formatSortingString(fields, direction || undefined);
 }

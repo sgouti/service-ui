@@ -175,4 +175,29 @@ describe('AnalyzerInsightsTab', () => {
       'DB timeout signature',
     );
   });
+
+  test('shows unavailable state when analyzer endpoints fail', async () => {
+    configureSelectors({
+      [FLAKINESS_BADGE_ENABLED]: 'true',
+      [QUARANTINE_TAB_ENABLED]: 'true',
+      [ROOT_CAUSE_CLUSTERS_ENABLED]: 'true',
+    });
+
+    fetch.mockRejectedValueOnce({
+      statusCode: 404,
+      message: 'Not Found',
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<AnalyzerInsightsTab logItem={{ id: 5 }} />);
+      await flushPromises();
+      await flushPromises();
+    });
+    wrapper.update();
+
+    expect(wrapper.find('.empty-state').last().prop('children')).toBe(
+      'Analyzer service data is unavailable for this item.',
+    );
+  });
 });

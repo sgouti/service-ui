@@ -21,7 +21,6 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
 import { useIntl } from 'react-intl';
 import { BubblesLoader, PlusIcon } from '@reportportal/ui-kit';
-import { organizationPluginSelector } from 'controllers/plugins';
 import { EmptyPageState } from 'pages/common';
 import {
   organizationsListLoadingSelector,
@@ -74,7 +73,6 @@ const OrganizationsPageComponent = ({
   const organizationsList = useSelector(organizationsListSelector);
   const isOrganizationsLoading = useSelector(organizationsListLoadingSelector);
   const userId = useSelector(userIdSelector);
-  const organizationPlugin = useSelector(organizationPluginSelector);
   const [searchValue, setSearchValue] = useState(null);
   const [appliedFiltersCount, setAppliedFiltersCount] = useState(0);
   const isEmptyOrganizations = !isOrganizationsLoading && organizationsList.length === 0;
@@ -127,13 +125,6 @@ const OrganizationsPageComponent = ({
       return <NoAssignedEmptyPage />;
     }
 
-    let tooltipMessage = '';
-    if (!organizationPlugin) {
-      tooltipMessage = messages.notUploadedPluginMessage;
-    } else if (!organizationPlugin.enabled) {
-      tooltipMessage = messages.pluginIsDisabledMessage;
-    }
-
     return searchValue === null && appliedFiltersCount === 0 ? (
       <EmptyPageState
         hasPermission={canCreateOrganization}
@@ -149,8 +140,6 @@ const OrganizationsPageComponent = ({
         )}
         buttonTitle={formatMessage(messages.createOrganization)}
         onClick={() => onCreateOrganization('empty_state')}
-        tooltipContent={tooltipMessage && formatMessage(tooltipMessage)}
-        isButtonDisabled={!organizationPlugin?.enabled}
       />
     ) : (
       <EmptyPageState

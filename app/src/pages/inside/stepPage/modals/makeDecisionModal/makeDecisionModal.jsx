@@ -54,6 +54,7 @@ import {
   SHOW_LOGS_BY_DEFAULT,
 } from './constants';
 import { ExecutionSection } from './executionSection';
+import { DEFAULT_EDIT_DEFECTS_EVENTS, normalizeModalEventsInfo } from './modalEventsInfo';
 
 const MakeDecision = ({ data }) => {
   const { formatMessage } = useIntl();
@@ -62,6 +63,7 @@ const MakeDecision = ({ data }) => {
   const projectKey = useSelector(projectKeySelector);
   const historyItems = useSelector(historyItemsSelector);
   const isAnalyzerAvailable = !!useSelector(analyzerExtensionsSelector).length;
+  const eventsInfo = normalizeModalEventsInfo(data.eventsInfo);
   const isBulkOperation = data.items && data.items.length > 1;
   const itemData = isBulkOperation ? data.items : data.items[0];
   const clusterIds = data.items[0].clusterId
@@ -97,6 +99,7 @@ const MakeDecision = ({ data }) => {
 
   const [modalHasChanges, setModalHasChanges] = useState(false);
   const [loadingMLSuggest, setLoadingMLSuggest] = useState(false);
+  const [isAnalyzerServiceAvailable, setIsAnalyzerServiceAvailable] = useState(isAnalyzerAvailable);
   useEffect(() => {
     let hasChanges;
     const newIssueData = modalState[ACTIVE_TAB_MAP[modalState.decisionType]].issue;
@@ -117,24 +120,72 @@ const MakeDecision = ({ data }) => {
   }, [modalState]);
 
   useEffect(() => {
-    if (isMLSuggestionsAvailable) {
-      setLoadingMLSuggest(true);
-      const url =
-        clusterIds.length === 1
-          ? URLS.MLSuggestionsByCluster(projectKey, clusterIds[0])
-          : URLS.MLSuggestions(projectKey, itemData.id);
-      fetch(url)
-        .then((resp) => {
-          if (resp.length !== 0) {
-            setModalState({ suggestedItems: resp });
-          }
-          setLoadingMLSuggest(false);
-        })
-        .catch(() => {
-          setLoadingMLSuggest(false);
-        });
+    let cancelled = false;
+    let analyzingNotificationTimer;
+
+    if (!isMLSuggestionsAvailable || !isAnalyzerAvailable) {
+      setLoadingMLSuggest(false);
+      setIsAnalyzerServiceAvailable(isAnalyzerAvailable);
+      return () => {};
     }
-  }, []);
+
+    setLoadingMLSuggest(true);
+    setIsAnalyzerServiceAvailable(true);
+    analyzingNotificationTimer = setTimeout(() => {
+      if (!cancelled) {
+        dispatch(
+          showNotification({
+            message: formatMessage(messages.analyzingSuggestions),
+            type: NOTIFICATION_TYPES.INFO,
+            duration: 2500,
+          }),
+        );
+      }
+    }, 1200);
+
+    const url =
+      clusterIds.length === 1
+        ? URLS.MLSuggestionsByCluster(projectKey, clusterIds[0])
+        : URLS.MLSuggestions(projectKey, itemData.id);
+
+    fetch(url)
+      .then((resp) => {
+        if (cancelled) {
+          return;
+        }
+
+        setModalState({ suggestedItems: Array.isArray(resp) ? resp : [] });
+        setIsAnalyzerServiceAvailable(true);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setModalState({ suggestedItems: [] });
+        setIsAnalyzerServiceAvailable(false);
+      })
+      .finally(() => {
+        clearTimeout(analyzingNotificationTimer);
+        if (!cancelled) {
+          setLoadingMLSuggest(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(analyzingNotificationTimer);
+    };
+  }, [
+    clusterIds,
+    dispatch,
+    formatMessage,
+    isAnalyzerAvailable,
+    isMLSuggestionsAvailable,
+    itemData.id,
+    projectKey,
+    setModalState,
+  ]);
 
   const prepareDataToSend = ({ isIssueAction } = {}) => {
     const { issue } = modalState[ACTIVE_TAB_MAP[activeTab]];
@@ -259,7 +310,7 @@ const MakeDecision = ({ data }) => {
   };
 
   const handlePostIssue = () => {
-    const { postIssueEvents } = data.eventsInfo;
+    const { postIssueEvents } = eventsInfo;
     dispatch(
       postIssueAction(prepareDataToSend({ isIssueAction: true }), {
         fetchFunc: data.fetchFunc,
@@ -268,7 +319,7 @@ const MakeDecision = ({ data }) => {
     );
   };
   const handleLinkIssue = () => {
-    const { linkIssueEvents } = data.eventsInfo;
+    const { linkIssueEvents } = eventsInfo;
     dispatch(
       linkIssueAction(prepareDataToSend({ isIssueAction: true }), {
         fetchFunc: data.fetchFunc,
@@ -277,7 +328,7 @@ const MakeDecision = ({ data }) => {
     );
   };
   const handleUnlinkIssue = () => {
-    const { unlinkIssueEvents } = data.eventsInfo;
+    const { unlinkIssueEvents } = eventsInfo;
     const selectedItems = isBulkOperation
       ? prepareDataToSend({ isIssueAction: true }).filter(
           (item) => item.issue.externalSystemIssues.length > 0,
@@ -306,9 +357,9 @@ const MakeDecision = ({ data }) => {
 
   const getOnApplyEvent = () => {
     const {
-      eventsInfo: { editDefectsEvents = {} },
       items,
     } = data;
+    const { editDefectsEvents = DEFAULT_EDIT_DEFECTS_EVENTS } = eventsInfo;
 
     const {
       issueActionType,
@@ -410,7 +461,7 @@ const MakeDecision = ({ data }) => {
             setModalState={setModalState}
             isBulkOperation={isBulkOperation}
             windowSize={windowSize}
-            eventsInfo={data.eventsInfo.editDefectsEvents}
+            eventsInfo={eventsInfo.editDefectsEvents}
           />
         ),
       },
@@ -427,7 +478,7 @@ const MakeDecision = ({ data }) => {
           <MachineLearningSuggestions
             modalState={modalState}
             itemData={itemData}
-            eventsInfo={data.eventsInfo.editDefectsEvents}
+            eventsInfo={eventsInfo.editDefectsEvents}
           />
         ),
       },
@@ -445,7 +496,7 @@ const MakeDecision = ({ data }) => {
             modalState={modalState}
             setModalState={setModalState}
             windowSize={windowSize}
-            eventsInfo={data.eventsInfo.editDefectsEvents}
+            eventsInfo={eventsInfo.editDefectsEvents}
             projectKey={projectKey}
           />
         ),
@@ -469,7 +520,7 @@ const MakeDecision = ({ data }) => {
           modalState={modalState}
           setModalState={setModalState}
           isBulkOperation={isBulkOperation}
-          eventsInfo={data.eventsInfo.editDefectsEvents}
+          eventsInfo={eventsInfo.editDefectsEvents}
         />
       }
       footer={
@@ -479,7 +530,7 @@ const MakeDecision = ({ data }) => {
           isBulkOperation={isBulkOperation}
           setModalState={setModalState}
           modalHasChanges={modalHasChanges}
-          eventsInfo={data.eventsInfo.editDefectsEvents}
+          eventsInfo={eventsInfo.editDefectsEvents}
         />
       }
     >
@@ -492,7 +543,7 @@ const MakeDecision = ({ data }) => {
         setModalState={setModalState}
         itemData={itemData}
         isBulkOperation={isBulkOperation}
-        isAnalyzerAvailable={isAnalyzerAvailable}
+        isAnalyzerAvailable={isAnalyzerAvailable && isAnalyzerServiceAvailable}
         isMLSuggestionsAvailable={isMLSuggestionsAvailable}
       />
     </DarkModalLayout>

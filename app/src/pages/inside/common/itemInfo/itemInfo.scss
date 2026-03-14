@@ -80,19 +80,24 @@
 }
 
 .edit-number-box {
-  white-space: nowrap;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  white-space: normal;
   position: relative;
 }
 
 .number {
-  margin-right: 5px;
+  margin-right: 0;
   white-space: nowrap;
 }
 
 .item-badge {
   display: inline-block;
   padding: 3px 8px;
-  margin-right: 5px;
+  margin-right: 0;
   border-radius: 100px;
   color: $COLOR--white-two;
   font-size: 10px;
@@ -121,13 +126,14 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 8px;
-  margin-right: 5px;
+  margin-right: 0;
   border: 0;
   border-radius: 100px;
   background: rgba($COLOR--topaz, 0.12);
   color: $COLOR--topaz;
   font-size: 10px;
   font-family: $FONT-SEMIBOLD;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -136,7 +142,7 @@
   visibility: hidden;
   width: 20px;
   height: 20px;
-  margin-left: 10px;
+  margin-left: 0;
   vertical-align: top;
   fill: $COLOR--gray-60;
   cursor: pointer;

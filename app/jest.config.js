@@ -23,6 +23,7 @@ module.exports = {
     '^components[/](.+)': '<rootDir>/src/components/$1',
     '^controllers[/](.+)': '<rootDir>/src/controllers/$1',
     '^common[/](.+)': '<rootDir>/src/common/$1',
+    '^hooks[/](.+)': '<rootDir>/src/hooks/$1',
     '^pages[/](.+)': '<rootDir>/src/pages/$1',
     '^store[/](.+)': '<rootDir>/src/store/$1',
     '^routes[/](.+)': '<rootDir>/src/routes/$1',

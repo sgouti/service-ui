@@ -83,6 +83,10 @@ const messages = defineMessages({
     id: 'LogItemAnalyzerInsights.unavailable',
     defaultMessage: 'Analyzer insights are disabled for this project.',
   },
+  serviceUnavailable: {
+    id: 'LogItemAnalyzerInsights.serviceUnavailable',
+    defaultMessage: 'Analyzer service data is unavailable for this item.',
+  },
 });
 
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '');
@@ -95,6 +99,7 @@ export const AnalyzerInsightsTab = ({ logItem = {} }) => {
   const [flakiness, setFlakiness] = useState(null);
   const [clusterMatch, setClusterMatch] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [serviceUnavailable, setServiceUnavailable] = useState(false);
 
   const features = useMemo(
     () => ({
@@ -114,6 +119,7 @@ export const AnalyzerInsightsTab = ({ logItem = {} }) => {
       }
 
       setLoading(true);
+      setServiceUnavailable(false);
       try {
         const tasks = [];
         if (features.flakiness || features.quarantine) {
@@ -166,6 +172,12 @@ export const AnalyzerInsightsTab = ({ logItem = {} }) => {
             }
           }
         }
+      } catch (error) {
+        if (!cancelled) {
+          setFlakiness(null);
+          setClusterMatch(null);
+          setServiceUnavailable(true);
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -186,6 +198,10 @@ export const AnalyzerInsightsTab = ({ logItem = {} }) => {
 
   if (loading) {
     return <SpinningPreloader />;
+  }
+
+  if (serviceUnavailable) {
+    return <div className={cx('empty-state')}>{formatMessage(messages.serviceUnavailable)}</div>;
   }
 
   return (
