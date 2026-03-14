@@ -16,7 +16,7 @@
 
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
-import { useState } from 'react';
+import { cloneElement, isValidElement, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useSelector } from 'react-redux';
 import { BubblesLoader } from '@reportportal/ui-kit';
@@ -68,14 +68,14 @@ const getRetrievalLabel = (suggestRs, formatMessage) => {
 };
 
 export const MakeDecisionTabs = ({
-  tabs,
-  toggleTab,
-  suggestedItems,
-  loadingMLSuggest,
+  tabs = [],
+  toggleTab = () => {},
+  suggestedItems = [],
+  loadingMLSuggest = false,
   modalState,
   setModalState,
-  isAnalyzerAvailable,
-  isMLSuggestionsAvailable,
+  isAnalyzerAvailable = false,
+  isMLSuggestionsAvailable = false,
 }) => {
   const { formatMessage } = useIntl();
   const analyzerAttributes = useSelector(analyzerAttributesSelector);
@@ -118,8 +118,27 @@ export const MakeDecisionTabs = ({
     });
   };
 
+  const applyMachineLearningSuggestion = (suggestion) => {
+    const nextIndex = suggestedItems.findIndex(
+      (item) => item.testItemResource.id === suggestion?.testItemResource?.id,
+    );
+    if (nextIndex === -1) {
+      return;
+    }
+
+    selectMachineLearningSuggestionItem(nextIndex, suggestion.testItemResource.id);
+  };
+
   const renderActiveTab = () => {
     const tab = tabs.find((el) => el.isOpen);
+    const content =
+      tab.id === MACHINE_LEARNING_SUGGESTIONS && isValidElement(tab.content)
+        ? cloneElement(tab.content, {
+            suggestedItems,
+            onApplySuggestion: applyMachineLearningSuggestion,
+          })
+        : tab.content;
+
     return (
       <div className={cx({ tab: isMLSuggestionsAvailable })}>
         {isMLSuggestionsAvailable && <div className={cx('tab-header')}>{tab.title}</div>}
@@ -128,7 +147,7 @@ export const MakeDecisionTabs = ({
             'padding-right-20': tab.id === COPY_FROM_HISTORY_LINE,
           })}
         >
-          {tab.content}
+          {content}
         </div>
       </div>
     );
@@ -246,12 +265,4 @@ MakeDecisionTabs.propTypes = {
   loadingMLSuggest: PropTypes.bool,
   isAnalyzerAvailable: PropTypes.bool,
   isMLSuggestionsAvailable: PropTypes.bool,
-};
-MakeDecisionTabs.defaultProps = {
-  tabs: [],
-  toggleTab: () => {},
-  suggestedItems: [],
-  loadingMLSuggest: false,
-  isAnalyzerAvailable: false,
-  isMLSuggestionsAvailable: false,
 };

@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 export API_URL=${API_URL:-../api}
 export AUTH_URL=${AUTH_URL:-../uat}

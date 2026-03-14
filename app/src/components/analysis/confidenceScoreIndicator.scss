@@ -1,0 +1,58 @@
+.indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compact {
+  gap: 2px;
+}
+
+.line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.label {
+  color: $COLOR--gray-47;
+  font-weight: 600;
+}
+
+.value {
+  color: $COLOR--charcoal-grey;
+  font-weight: 700;
+}
+
+.compact .label,
+.compact .value {
+  font-size: 11px;
+}
+
+.tone-high .value {
+  color: $COLOR--topaz-2;
+}
+
+.tone-warning .value {
+  color: $COLOR--orange-red;
+}
+
+.tone-critical .value {
+  color: $COLOR--failed;
+}
+
+.warningDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $COLOR--orange-red;
+}
+
+.criticalNote {
+  color: $COLOR--failed;
+  font-size: 11px;
+  font-weight: 600;
+}

@@ -45,13 +45,35 @@
   border-radius: 999px;
   background: transparent;
   padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
+.tab-count {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba($COLOR--charcoal-grey, 0.08);
+  color: $COLOR--charcoal-grey;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .tab-button-active {
   background: $COLOR--topaz-2;
+  color: $COLOR--white-two;
+}
+
+.tab-button-active .tab-count {
+  background: rgba($COLOR--white-two, 0.18);
   color: $COLOR--white-two;
 }
 
@@ -78,6 +100,11 @@
   font-size: 28px;
   font-weight: 700;
   color: $COLOR--charcoal-grey;
+}
+
+.card-value-small {
+  font-size: 18px;
+  line-height: 1.35;
 }
 
 .card-caption {
@@ -143,7 +170,7 @@
 }
 
 .quarantine-row {
-  grid-template-columns: minmax(180px, 1fr) 90px 96px 100px;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1.2fr) 70px 80px 96px 100px;
 }
 
 .history-row {
@@ -180,6 +207,10 @@
 .badge-low {
   background: rgba($COLOR--topaz-2, 0.12);
   color: $COLOR--topaz-2;
+}
+
+.status-history {
+  word-break: break-word;
 }
 
 .metric-positive {
@@ -228,7 +259,7 @@
 }
 
 .table-head-quarantine {
-  grid-template-columns: minmax(180px, 1fr) 90px 96px 100px;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1.2fr) 70px 80px 96px 100px;
 }
 
 .table-head-history {

@@ -8,6 +8,7 @@ import { fetch } from 'common/utils';
 import { URLS } from 'common/urls';
 import { SpinningPreloader } from 'components/preloaders/spinningPreloader';
 import { FlakinessDetailPanel } from 'components/flakiness';
+import { RootCauseClusterView } from 'components/clusters';
 import { COMMON_LOCALE_KEYS } from 'common/constants/localization';
 import { ModalLayout } from 'components/main/modal';
 import { showModalAction } from 'controllers/modal';
@@ -128,6 +129,11 @@ const messages = defineMessages({
     id: 'AnalyzerInsightsPage.quarantineColumn',
     defaultMessage: 'Quarantine',
   },
+  runsColumn: { id: 'AnalyzerInsightsPage.runsColumn', defaultMessage: 'Runs' },
+  transitionsColumn: {
+    id: 'AnalyzerInsightsPage.transitionsColumn',
+    defaultMessage: 'Switches',
+  },
   flakinessDetails: {
     id: 'AnalyzerInsightsPage.flakinessDetails',
     defaultMessage: 'Flakiness Details',
@@ -135,6 +141,23 @@ const messages = defineMessages({
   historyRuns: { id: 'AnalyzerInsightsPage.historyRuns', defaultMessage: 'History Runs' },
   lastChange: { id: 'AnalyzerInsightsPage.lastChange', defaultMessage: 'Last Status Change' },
   notAvailable: { id: 'AnalyzerInsightsPage.notAvailable', defaultMessage: 'Not available' },
+  passRate: { id: 'AnalyzerInsightsPage.passRate', defaultMessage: 'Pass Rate' },
+  adjustedPassRate: {
+    id: 'AnalyzerInsightsPage.adjustedPassRate',
+    defaultMessage: 'Adjusted Pass Rate',
+  },
+  adjustedPassRateHint: {
+    id: 'AnalyzerInsightsPage.adjustedPassRateHint',
+    defaultMessage: 'Excludes {count} quarantined tests from the denominator',
+  },
+  alreadyQuarantined: {
+    id: 'AnalyzerInsightsPage.alreadyQuarantined',
+    defaultMessage: 'Already Quarantined',
+  },
+  selectedLaunch: {
+    id: 'AnalyzerInsightsPage.selectedLaunch',
+    defaultMessage: 'Selected Launch',
+  },
 });
 
 const FEATURE_DEFAULTS = {
@@ -169,6 +192,58 @@ const isFeatureEnabled = (config, key) => {
 };
 
 const getBadgeClass = (rate) => (rate >= 50 ? 'badge' : 'badge badge-low');
+
+const roundPercent = (value) => Math.round(value * 10) / 10;
+
+const getMetricMap = (summary, launchId) => {
+  const releaseLaunch = (summary.releaseAggregate || []).find((launch) => launch.id === launchId);
+  if (releaseLaunch?.values) {
+    return releaseLaunch.values;
+  }
+
+  if (summary.comparison?.currentLaunchId === launchId) {
+    return (summary.comparison.metrics || []).reduce((acc, metric) => {
+      acc[metric.field] = metric.current;
+      return acc;
+    }, {});
+  }
+
+  return {};
+};
+
+const getLaunchLabel = (summary, launchId) => {
+  const launch = (summary.recentLaunches || []).find((item) => item.id === launchId);
+  if (launch) {
+    return `${launch.name} #${launch.number}`;
+  }
+
+  if (summary.launchId === launchId && summary.launchName && summary.launchNumber) {
+    return `${summary.launchName} #${summary.launchNumber}`;
+  }
+
+  return null;
+};
+
+const getQuarantineStats = (summary, launchId) => {
+  const metricMap = getMetricMap(summary, launchId);
+  const passed = metricMap['statistics$executions$passed'] || 0;
+  const failed = metricMap['statistics$executions$failed'] || 0;
+  const skipped = metricMap['statistics$executions$skipped'] || 0;
+  const totalItems = summary.coverage?.totalItems || passed + failed + skipped;
+  const quarantineCount = (summary.quarantine || []).length;
+  const quarantinedCount = (summary.quarantine || []).filter((item) => item.quarantined).length;
+  const adjustedTotal = Math.max(totalItems - quarantinedCount, 0);
+
+  return {
+    quarantineCount,
+    quarantinedCount,
+    basePassRate: totalItems > 0 ? roundPercent((passed / totalItems) * 100) : null,
+    adjustedPassRate: adjustedTotal > 0 ? roundPercent((passed / adjustedTotal) * 100) : null,
+    launchLabel: getLaunchLabel(summary, launchId),
+  };
+};
+
+const getCurrentLaunchMetrics = (summary, launchId) => getMetricMap(summary, launchId);
 
 const FlakinessDetailsModal = ({ projectKey, itemId, itemName }) => {
   const { formatMessage } = useIntl();
@@ -369,6 +444,9 @@ export const AnalyzerInsightsPage = () => {
 
   const currentLaunchId = selectedLaunchId || summary.launchId;
   const currentCompareId = selectedCompareId || summary.comparison?.baselineLaunchId || '';
+  const quarantineStats = getQuarantineStats(summary, currentLaunchId);
+  const currentLaunchMetrics = getCurrentLaunchMetrics(summary, currentLaunchId);
+  const currentLaunchFailures = currentLaunchMetrics['statistics$executions$failed'] || 0;
 
   return (
     <PageLayout title={formatMessage(messages.title)}>
@@ -441,6 +519,7 @@ export const AnalyzerInsightsPage = () => {
                 onClick={() => setActiveTab('quarantine')}
               >
                 {formatMessage(messages.quarantineTab)}
+                <span className={cx('tab-count')}>{quarantineStats.quarantineCount}</span>
               </button>
             )}
           </div>
@@ -512,32 +591,13 @@ export const AnalyzerInsightsPage = () => {
 
                 {features.clusters && (
                   <div className={cx('panel')}>
-                    <div className={cx('panel-header')}>
-                      <div>
-                        <div className={cx('panel-title')}>{formatMessage(messages.rootCause)}</div>
-                        <div className={cx('panel-note')}>{formatMessage(messages.rootCauseNote)}</div>
-                      </div>
-                    </div>
-                    {clustersLoading ? (
-                      <SpinningPreloader />
-                    ) : clusters.length ? (
-                      <>
-                        <div className={cx('table-head', 'table-head-cluster')}>
-                          <div>ID</div>
-                          <div>{formatMessage(messages.clusterItems)}</div>
-                          <div>{formatMessage(messages.clusterMessage)}</div>
-                        </div>
-                        {clusters.map((cluster) => (
-                          <div key={cluster.id} className={cx('cluster-row')}>
-                            <div className={cx('strong')}>{cluster.id}</div>
-                            <div>{cluster.matchedTests}</div>
-                            <div className={cx('muted')}>{cluster.message}</div>
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div className={cx('empty-state')}>{formatMessage(messages.emptyClusters)}</div>
-                    )}
+                    <RootCauseClusterView
+                      clusters={clusters}
+                      loading={clustersLoading}
+                      projectKey={projectKey}
+                      launchId={summary.launchId}
+                      totalFailures={currentLaunchFailures}
+                    />
                   </div>
                 )}
 
@@ -593,11 +653,50 @@ export const AnalyzerInsightsPage = () => {
                   <div className={cx('panel-note')}>{formatMessage(messages.quarantineNote)}</div>
                 </div>
               </div>
+              <div className={cx('cards', 'quarantine-summary')}>
+                <div className={cx('card')}>
+                  <div className={cx('card-label')}>{formatMessage(messages.quarantineCandidates)}</div>
+                  <div className={cx('card-value')}>{quarantineStats.quarantineCount}</div>
+                  <div className={cx('card-caption')}>{formatMessage(messages.historyRuns)}</div>
+                </div>
+                <div className={cx('card')}>
+                  <div className={cx('card-label')}>{formatMessage(messages.alreadyQuarantined)}</div>
+                  <div className={cx('card-value')}>{quarantineStats.quarantinedCount}</div>
+                  <div className={cx('card-caption')}>{formatMessage(messages.quarantineColumn)}</div>
+                </div>
+                <div className={cx('card')}>
+                  <div className={cx('card-label')}>{formatMessage(messages.adjustedPassRate)}</div>
+                  <div className={cx('card-value')}>
+                    {quarantineStats.adjustedPassRate === null
+                      ? formatMessage(messages.notAvailable)
+                      : `${quarantineStats.adjustedPassRate}%`}
+                  </div>
+                  <div className={cx('card-caption')}>
+                    {quarantineStats.basePassRate === null
+                      ? formatMessage(messages.notAvailable)
+                      : `${formatMessage(messages.passRate)} ${quarantineStats.basePassRate}%`}
+                  </div>
+                  <div className={cx('card-caption')}>
+                    {formatMessage(messages.adjustedPassRateHint, {
+                      count: quarantineStats.quarantineCount,
+                    })}
+                  </div>
+                </div>
+                <div className={cx('card')}>
+                  <div className={cx('card-label')}>{formatMessage(messages.selectedLaunch)}</div>
+                  <div className={cx('card-value', 'card-value-small')}>
+                    {quarantineStats.launchLabel || formatMessage(messages.notAvailable)}
+                  </div>
+                  <div className={cx('card-caption')}>{formatMessage(messages.launchColumn)}</div>
+                </div>
+              </div>
               {(summary.quarantine || []).length ? (
                 <>
                   <div className={cx('table-head', 'table-head-quarantine')}>
                     <div>{formatMessage(messages.candidateColumn)}</div>
                     <div>{formatMessage(messages.statusHistoryColumn)}</div>
+                    <div>{formatMessage(messages.runsColumn)}</div>
+                    <div>{formatMessage(messages.transitionsColumn)}</div>
                     <div>{formatMessage(messages.flakyRateColumn)}</div>
                     <div>{formatMessage(messages.quarantineColumn)}</div>
                   </div>
@@ -607,7 +706,11 @@ export const AnalyzerInsightsPage = () => {
                         <div className={cx('strong')}>{item.name}</div>
                         <div className={cx('muted')}>{item.currentStatus}</div>
                       </div>
-                      <div className={cx('muted')}>{(item.statusHistory || []).join(' -> ')}</div>
+                      <div className={cx('muted', 'status-history')}>
+                        {(item.statusHistory || []).join(' -> ')}
+                      </div>
+                      <div>{item.totalRuns || 0}</div>
+                      <div>{item.flakyTransitions || 0}</div>
                       <div>
                         {features.flakiness ? (
                           <button

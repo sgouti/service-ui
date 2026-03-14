@@ -25,7 +25,7 @@ const cx = classNames.bind(styles);
 const messages = defineMessages({
   loginHint: {
     id: 'RegistrationForm.loginHint',
-    defaultMessage: 'Email is incorrect. Please enter correct email',
+    defaultMessage: 'Login is required',
   },
   nameHint: {
     id: 'RegistrationForm.nameHint',

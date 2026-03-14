@@ -62,6 +62,17 @@ jest.mock('components/flakiness', () => ({
   ),
 }));
 
+jest.mock('components/clusters', () => ({
+  RootCauseClusterView: ({ clusters, loading, totalFailures }) => (
+    <div
+      className="root-cause-clusters-mock"
+      data-count={clusters?.length || 0}
+      data-loading={loading ? 'true' : 'false'}
+      data-total-failures={totalFailures}
+    />
+  ),
+}));
+
 jest.mock('common/utils', () => ({
   fetch: jest.fn(),
 }));
@@ -90,8 +101,9 @@ jest.mock('controllers/pages', () => ({
 
 const summary = {
   launchId: 101,
-  coverage: { coveragePercent: 88, autoAnalyzedItems: 24, nonPassedItems: 30 },
+  coverage: { coveragePercent: 88, autoAnalyzedItems: 24, nonPassedItems: 12, totalItems: 30 },
   comparison: {
+    currentLaunchId: 101,
     baselineLaunchId: 77,
     metrics: [
       { field: 'statistics$executions$failed', label: 'Failed', baseline: 8, current: 5, delta: -3 },
@@ -104,12 +116,36 @@ const summary = {
       name: 'Checkout flow',
       currentStatus: 'FAILED',
       statusHistory: ['FAILED', 'PASSED', 'FAILED'],
+      totalRuns: 6,
+      flakyTransitions: 3,
       flakyRate: 58,
       quarantined: true,
     },
+    {
+      itemId: 56,
+      name: 'Profile update',
+      currentStatus: 'FAILED',
+      statusHistory: ['FAILED', 'FAILED', 'PASSED'],
+      totalRuns: 5,
+      flakyTransitions: 1,
+      flakyRate: 34,
+      quarantined: false,
+    },
   ],
   triageAging: [{ label: 'breach', count: 3 }],
-  releaseAggregate: [],
+  releaseAggregate: [
+    {
+      id: 101,
+      name: 'Regression',
+      number: 55,
+      values: {
+        'statistics$executions$passed': 18,
+        'statistics$executions$failed': 9,
+        'statistics$executions$skipped': 3,
+        'statistics$defects$to_investigate$total': 6,
+      },
+    },
+  ],
   recentLaunches: [
     { id: 101, name: 'Regression', number: 55 },
     { id: 77, name: 'Regression', number: 54 },
@@ -172,13 +208,18 @@ describe('AnalyzerInsightsPage', () => {
     );
     expect(wrapper.find('.metric-row')).toHaveLength(2);
     expect(wrapper.find('.quarantine-row')).toHaveLength(0);
+    expect(normalizeChildren(wrapper.find('.tab-count').at(0).prop('children'))).toBe('2');
 
     await act(async () => {
       wrapper.find('.tab-button').at(1).prop('onClick')();
     });
     wrapper.update();
 
-    expect(wrapper.find('.quarantine-row')).toHaveLength(1);
+    expect(wrapper.find('.quarantine-row')).toHaveLength(2);
+    expect(wrapper.find('.quarantine-summary .card-value').map((node) => normalizeChildren(node.prop('children')))).toEqual(
+      expect.arrayContaining(['62.1%']),
+    );
+    expect(wrapper.find('.badge')).toHaveLength(2);
   });
 
   test('opens flakiness details modal from deep link query', async () => {
@@ -203,6 +244,49 @@ describe('AnalyzerInsightsPage', () => {
     const modalPayload = showModalAction.mock.calls[0][0];
     expect(modalPayload.component).toBeTruthy();
     expect(dispatch).toHaveBeenCalledWith({ type: 'SHOW_MODAL', payload: modalPayload });
-    expect(wrapper.find('.quarantine-row')).toHaveLength(1);
+    expect(wrapper.find('.quarantine-row')).toHaveLength(2);
+  });
+
+  test('does not expose flakiness modal actions when flakiness is disabled', async () => {
+    configureSelectors();
+    useSelector.mockImplementation((selector) => {
+      if (selector === projectKeySelector) {
+        return 'demo';
+      }
+      if (selector === analyzerAttributesSelector) {
+        return { flakinessBadgeEnabled: 'false' };
+      }
+      if (selector === querySelector) {
+        return {};
+      }
+      if (selector === analyzerInsightsSelector) {
+        return summary;
+      }
+      if (selector === analyzerInsightsLoadingSelector) {
+        return false;
+      }
+      if (selector === analyzerInsightsClustersSelector) {
+        return [{ id: 19, matchedTests: 4, message: 'DB timeout signature' }];
+      }
+      if (selector === analyzerInsightsClustersLoadingSelector) {
+        return false;
+      }
+      return undefined;
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<AnalyzerInsightsPage />);
+      await Promise.resolve();
+    });
+    wrapper.update();
+
+    await act(async () => {
+      wrapper.find('.tab-button').at(1).prop('onClick')();
+    });
+    wrapper.update();
+
+    expect(wrapper.find('.badge')).toHaveLength(0);
+    expect(wrapper.findWhere((node) => node.type() === 'button' && node.prop('aria-label') && String(node.prop('aria-label')).includes('Flakiness Details'))).toHaveLength(0);
   });
 });

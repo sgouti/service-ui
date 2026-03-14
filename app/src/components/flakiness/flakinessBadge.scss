@@ -1,5 +1,3 @@
-@import '~common/css/variables/index';
-
 .badge-wrapper {
   position: relative;
   display: inline-flex;
@@ -31,7 +29,7 @@
 }
 
 .unstable {
-  background-color: $COLOR--goldenrod;
+  background-color: $COLOR--warning;
 }
 
 .flaky {
@@ -39,7 +37,7 @@
 }
 
 .critical {
-  background-color: $COLOR--rust-red;
+  background-color: $COLOR--fatal;
 }
 
 .badge-skeleton {

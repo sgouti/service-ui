@@ -35,7 +35,7 @@ import {
 } from 'controllers/filter';
 import { userRolesSelector } from 'controllers/pages';
 import { canWorkWithFilters } from 'common/utils/permissions';
-import { fetchDataAction } from 'controllers/fetch';
+import { fetchDataAction, fetchSuccessAction } from 'controllers/fetch';
 import {
   UPDATE_DEFECT_TYPE,
   ADD_DEFECT_TYPE,
@@ -88,6 +88,15 @@ import {
   deleteLogTypeSuccessAction,
 } from './actionCreators';
 import { patternsSelector, projectKeySelector } from './selectors';
+
+const DEFAULT_ORGANIZATION_ID = 1;
+
+const normalizeProjectResponse = (projectKey, project = {}) => ({
+  ...project,
+  projectKey: project.projectKey || projectKey || project.projectName || '',
+  projectSlug: project.projectSlug || project.projectName || projectKey,
+  organizationId: project.organizationId || DEFAULT_ORGANIZATION_ID,
+});
 
 function* updateDefectType({ payload: defectTypes }) {
   yield put(showScreenLockAction());
@@ -431,7 +440,10 @@ function* fetchProject({ payload: { projectKey, fetchInfoOnly } }) {
   try {
     let project = null;
     if (projectKey) {
-      project = yield call(fetch, URLS.projectByName(projectKey));
+      project = normalizeProjectResponse(
+        projectKey,
+        yield call(fetch, URLS.projectByName(projectKey)),
+      );
       yield put(setProjectIntegrationsAction(project.integrations));
     }
     yield put(fetchProjectSuccessAction(project));
@@ -466,7 +478,10 @@ function* watchFetchProjectPreferences() {
 }
 
 function* fetchConfigurationAttributes({ payload: projectKey }) {
-  const project = yield call(fetch, URLS.projectByName(projectKey));
+  const project = normalizeProjectResponse(
+    projectKey,
+    yield call(fetch, URLS.projectByName(projectKey)),
+  );
   yield put(updateConfigurationAttributesAction(project));
 }
 
@@ -506,7 +521,12 @@ function* watchUpdateProjectFilterPreferences() {
 }
 
 function* fetchLogTypes({ payload: projectKey }) {
-  yield put(fetchDataAction(LOG_TYPES_NAMESPACE)(URLS.projectLogTypes(projectKey)));
+  try {
+    const response = yield call(fetch, URLS.projectLogTypes(projectKey));
+    yield put(fetchSuccessAction(LOG_TYPES_NAMESPACE, response));
+  } catch {
+    yield put(fetchSuccessAction(LOG_TYPES_NAMESPACE, { items: [] }));
+  }
 }
 
 function* watchFetchLogTypes() {

@@ -1,0 +1,211 @@
+.cluster-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cluster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.cluster-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.cluster-note {
+  font-size: 12px;
+  color: $COLOR--gray-47;
+}
+
+.cluster-list {
+  display: grid;
+  gap: 16px;
+}
+
+.cluster-card {
+  border: 1px solid $COLOR--gray-91;
+  border-radius: 12px;
+  background: $COLOR--white-two;
+  padding: 18px;
+}
+
+.cluster-card-skeleton {
+  pointer-events: none;
+}
+
+.cluster-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cluster-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.cluster-card-message {
+  margin-top: 6px;
+  font-size: 12px;
+  color: $COLOR--gray-47;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cluster-count {
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: $COLOR--charcoal-grey;
+}
+
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.share-track {
+  height: 10px;
+  border-radius: 999px;
+  background: $COLOR--gray-91;
+  overflow: hidden;
+}
+
+.share-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, $COLOR--topaz-2, $COLOR--orange-red);
+}
+
+.share-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $COLOR--gray-47;
+}
+
+.cluster-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.action-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid $COLOR--gray-80;
+  border-radius: 999px;
+  background: $COLOR--white-two;
+  color: $COLOR--charcoal-grey;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action-button-primary {
+  border-color: transparent;
+  background: $COLOR--topaz-2;
+  color: $COLOR--white-two;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cluster-items {
+  margin-top: 16px;
+  border-top: 1px solid $COLOR--gray-91;
+  padding-top: 12px;
+}
+
+.cluster-item-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.cluster-item-link {
+  color: $COLOR--topaz-2;
+  text-decoration: none;
+}
+
+.cluster-item-status {
+  font-size: 11px;
+  font-weight: 700;
+  color: $COLOR--gray-47;
+  text-transform: uppercase;
+}
+
+.load-more-button {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: $COLOR--topaz-2;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.items-loading,
+.empty-state {
+  padding: 20px;
+  border: 1px dashed $COLOR--gray-80;
+  border-radius: 12px;
+  color: $COLOR--gray-47;
+  text-align: center;
+}
+
+.skeleton-line,
+.skeleton-bar,
+.skeleton-pill {
+  background: $COLOR--gray-91;
+  border-radius: 999px;
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-title {
+  width: 55%;
+  height: 16px;
+}
+
+.skeleton-bar {
+  height: 10px;
+  margin-top: 12px;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.skeleton-pill {
+  width: 92px;
+  height: 34px;
+}
+
+@media (max-width: $SCREEN_MD_MAX) {
+  .cluster-card-head,
+  .share-row,
+  .cluster-item-row {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}

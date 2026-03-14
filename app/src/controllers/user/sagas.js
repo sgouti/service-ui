@@ -17,7 +17,7 @@
 import { takeLatest, takeEvery, call, all, put, select } from 'redux-saga/effects';
 import { redirect } from 'redux-first-router';
 import { fetch } from 'common/utils/fetch';
-import { URLS } from 'common/urls';
+import { DEFAULT_COMMON_API_URL_PREFIX, URLS } from 'common/urls';
 import {
   showNotification,
   NOTIFICATION_TYPES,
@@ -79,6 +79,42 @@ import {
 } from './constants';
 import { activeProjectKeySelector, userIdSelector, userInfoSelector } from './selectors';
 
+const defaultOrganization = {
+  id: 1,
+  organizationId: 1,
+  slug: 'default',
+  organizationSlug: 'default',
+  name: 'Default',
+  organizationName: 'Default',
+  organizationRole: 'MANAGER',
+};
+
+const normalizeUserResponse = (user = {}) => {
+  const assignedProjects = Object.fromEntries(
+    Object.entries(user.assignedProjects || {}).map(([projectKey, project]) => [
+      projectKey,
+      {
+        ...project,
+        projectId: project.projectId,
+        projectName: project.projectName || projectKey,
+        projectSlug: project.projectSlug || projectKey,
+        projectKey: project.projectKey || projectKey,
+        organizationId: project.organizationId || defaultOrganization.organizationId,
+      },
+    ]),
+  );
+
+  const assignedOrganizations = Object.keys(user.assignedOrganizations || {}).length
+    ? user.assignedOrganizations
+    : { [defaultOrganization.organizationSlug]: defaultOrganization };
+
+  return {
+    ...user,
+    assignedProjects,
+    assignedOrganizations,
+  };
+};
+
 function* assignToProject({ payload: project }) {
   const userId = yield select(userIdSelector);
   const userRole = PROJECT_MANAGER;
@@ -126,11 +162,19 @@ function* assignToProject({ payload: project }) {
 
 function* fetchUserInfo() {
   try {
-    const user = yield call(fetch, URLS.users());
+    const user = normalizeUserResponse(yield call(fetch, URLS.users()));
     yield put(fetchUserSuccessAction(user));
     return user;
   } catch (err) {
-    yield put(fetchUserErrorAction());
+    try {
+      const user = normalizeUserResponse(
+        yield call(fetch, `${DEFAULT_COMMON_API_URL_PREFIX}/users/`),
+      );
+      yield put(fetchUserSuccessAction(user));
+      return user;
+    } catch {
+      yield put(fetchUserErrorAction());
+    }
   }
 }
 

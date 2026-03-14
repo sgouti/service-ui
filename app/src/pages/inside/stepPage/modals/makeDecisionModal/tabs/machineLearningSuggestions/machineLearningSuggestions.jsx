@@ -21,6 +21,11 @@ import { useTracking } from 'react-tracking';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames/bind';
 import { TO_INVESTIGATE_LOCATOR_PREFIX } from 'common/constants/defectTypes';
+import {
+  ConfidenceScoreIndicator,
+  HybridSearchIndicator,
+  RankedSuggestionsPanel,
+} from 'components/analysis';
 import { analyzerAttributesSelector } from 'controllers/project';
 import {
   CONFIDENCE_SCORE_ENABLED,
@@ -35,34 +40,13 @@ const cx = classNames.bind(styles);
 
 const isFeatureEnabled = (config, key) => config[key] !== 'false';
 
-const normalizeRank = (value) => Math.max(1, Number(value) || 1);
-
-const getConfidenceLabel = (score, formatMessage) => {
-  if (score >= 85) {
-    return formatMessage(messages.confidenceHigh);
-  }
-  if (score >= 60) {
-    return formatMessage(messages.confidenceMedium);
-  }
-  return formatMessage(messages.confidenceLow);
-};
-
-const getRetrievalLabel = (suggestRs, formatMessage) => {
-  const method = `${suggestRs.methodName || ''} ${suggestRs.modelInfo || ''}`.toLowerCase();
-
-  if (method.includes('hybrid')) {
-    return formatMessage(messages.hybridSearch);
-  }
-  if (method.includes('rerank') || method.includes('bge')) {
-    return formatMessage(messages.reranked);
-  }
-  if (method.includes('semantic') || method.includes('embed')) {
-    return formatMessage(messages.semanticSearch);
-  }
-  return formatMessage(messages.keywordSearch);
-};
-
-export const MachineLearningSuggestions = ({ modalState, itemData = {}, eventsInfo = {} }) => {
+export const MachineLearningSuggestions = ({
+  modalState,
+  itemData = {},
+  eventsInfo = {},
+  suggestedItems = [],
+  onApplySuggestion = () => {},
+}) => {
   const { formatMessage } = useIntl();
   const { trackEvent } = useTracking();
   const analyzerAttributes = useSelector(analyzerAttributesSelector);
@@ -89,61 +73,39 @@ export const MachineLearningSuggestions = ({ modalState, itemData = {}, eventsIn
           {formatMessage(messages.machineLearningSuggestions, { value: suggestRs.matchScore })}
         </div>
       )}
-      {(showConfidence || showRank || showHybrid) && (
-        <div className={cx('summary')}>
-          {showConfidence && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.confidence)}</div>
-              <div className={cx('summary-value')}>
-                {getConfidenceLabel(suggestRs.matchScore, formatMessage)}
-              </div>
-            </div>
-          )}
-          {showRank && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.rank)}</div>
-              <div className={cx('summary-value')}>#{normalizeRank(suggestRs.resultPosition)}</div>
-            </div>
-          )}
-          {showRank && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.keywordRank)}</div>
-              <div className={cx('summary-value')}>#{normalizeRank(suggestRs.esPosition)}</div>
-            </div>
-          )}
-          {showHybrid && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.retrieval)}</div>
-              <div className={cx('summary-value')}>
-                {getRetrievalLabel(suggestRs, formatMessage)}
-              </div>
-            </div>
-          )}
-          {showHybrid && !!suggestRs.esScore && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.semanticScore)}</div>
-              <div className={cx('summary-value')}>{Number(suggestRs.esScore).toFixed(3)}</div>
-            </div>
-          )}
-          {showHybrid && !!suggestRs.modelInfo && (
-            <div className={cx('summary-card')}>
-              <div className={cx('summary-label')}>{formatMessage(messages.model)}</div>
-              <div className={cx('summary-value')}>{suggestRs.modelInfo}</div>
-            </div>
-          )}
-        </div>
+      {showRank && suggestedItems.length > 0 ? (
+        <RankedSuggestionsPanel
+          suggestions={suggestedItems}
+          selectedSuggestionId={item.id}
+          onApplySuggestion={onApplySuggestion}
+        />
+      ) : (
+        (showConfidence || showHybrid) && (
+          <div className={cx('selected-suggestion')}>
+            {showConfidence && <ConfidenceScoreIndicator confidence={suggestRs.matchScore} compact />}
+            {showHybrid && (
+              <HybridSearchIndicator
+                matchSource={suggestRs.matchSource}
+                methodName={suggestRs.methodName}
+                modelInfo={suggestRs.modelInfo}
+              />
+            )}
+          </div>
+        )
       )}
-      <TestItemDetails
-        item={item}
-        logs={logs}
-        highlightedLogId={suggestRs.relevantLogId}
-        highlightedMessage={formatMessage(messages.similarLog)}
-        showErrorLogs
-        eventsInfo={{
-          onOpenStackTraceEvent,
-          onClickExternalLinkEvent,
-        }}
-      />
+      <div className={cx('details-section')}>
+        <TestItemDetails
+          item={item}
+          logs={logs}
+          highlightedLogId={suggestRs.relevantLogId}
+          highlightedMessage={formatMessage(messages.similarLog)}
+          showErrorLogs
+          eventsInfo={{
+            onOpenStackTraceEvent,
+            onClickExternalLinkEvent,
+          }}
+        />
+      </div>
     </>
   );
 };
@@ -152,4 +114,6 @@ MachineLearningSuggestions.propTypes = {
   modalState: PropTypes.object.isRequired,
   itemData: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
   eventsInfo: PropTypes.object,
+  suggestedItems: PropTypes.array,
+  onApplySuggestion: PropTypes.func,
 };

@@ -41,7 +41,7 @@ export const email = composeValidators([
   regex(/^(?![.])[a-z0-9._-]+@[a-z0-9_.-]+?\.[a-z0-9]{2,}$/i),
 ]);
 export const requiredEmail = composeValidators([isNotEmpty, email]);
-export const login = composeValidators([isNotEmpty, email]);
+export const login = composeValidators([isNotEmpty, lengthRange(1, 128)]);
 export const oldPassword = composeValidators([isNotEmpty, regex(/^(.){4,256}$/)]);
 
 // TODO: Remove this validator in favor of createPasswordValidator

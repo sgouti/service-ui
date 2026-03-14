@@ -36,16 +36,47 @@ jest.mock('../../elements/testItemDetails', () => ({
 const createWrapper = (attributes, suggestRs = {}) => {
   useSelector.mockImplementation(() => attributes);
 
+  const suggestedItems = [
+    {
+      testItemResource: {
+        id: 77,
+        name: 'Timeout in checkout',
+        issue: { issueType: 'ab001' },
+        launchName: 'Sprint 41',
+      },
+      suggestRs: {
+        matchScore: 91,
+        matchSource: 'hybrid',
+        methodName: 'hybrid',
+      },
+    },
+    {
+      testItemResource: {
+        id: 78,
+        name: '401 in checkout',
+        issue: { issueType: 'pb001' },
+        launchName: 'Sprint 39',
+      },
+      suggestRs: {
+        matchScore: 63,
+        matchSource: 'keyword',
+        methodName: 'keyword',
+      },
+    },
+  ];
+
   return mount(
     <MachineLearningSuggestions
       modalState={{
         suggestChoice: {
+          id: 77,
           logs: [],
           suggestRs: {
             matchScore: 91,
             resultPosition: 2,
             esPosition: 4,
             methodName: 'hybrid',
+            matchSource: 'hybrid',
             modelInfo: 'bge-m3',
             esScore: 0.9134,
             relevantLogId: 17,
@@ -53,6 +84,8 @@ const createWrapper = (attributes, suggestRs = {}) => {
           },
         },
       }}
+      suggestedItems={suggestedItems}
+      onApplySuggestion={jest.fn()}
       itemData={{
         issue: {
           issueType: 'ti001',
@@ -71,32 +104,19 @@ describe('MachineLearningSuggestions', () => {
     jest.clearAllMocks();
   });
 
-  test('renders confidence, rank, and hybrid retrieval summary when enabled', () => {
+  test('renders ranked suggestions panel when analyzer insight flags are enabled', () => {
     const wrapper = createWrapper({
       [CONFIDENCE_SCORE_ENABLED]: 'true',
       [RANKED_SUGGESTIONS_ENABLED]: 'true',
       [HYBRID_SEARCH_INDICATOR_ENABLED]: 'true',
     });
 
-    const labels = wrapper.find('.summary-label').map((node) => node.prop('children'));
-    const values = wrapper
-      .find('.summary-value')
-      .map((node) => node.prop('children'))
-      .map((value) => (Array.isArray(value) ? value.join('') : String(value)));
-
-    expect(labels).toEqual(
-      expect.arrayContaining([
-        'Confidence',
-        'Rank',
-        'Keyword Rank',
-        'Retrieval',
-        'Semantic Score',
-        'Model',
-      ]),
-    );
-    expect(values).toEqual(
-      expect.arrayContaining(['High', '#2', '#4', 'Hybrid', '0.913', 'bge-m3']),
-    );
+    expect(wrapper.find('.card')).toHaveLength(2);
+    expect(wrapper.find('.tag').map((node) => node.prop('children'))).toEqual([
+      'hybrid',
+      'keyword',
+    ]);
+    expect(wrapper.find('.test-item-details')).toHaveLength(1);
   });
 
   test('hides summary metadata when all analyzer insight flags are disabled', () => {
@@ -106,7 +126,7 @@ describe('MachineLearningSuggestions', () => {
       [HYBRID_SEARCH_INDICATOR_ENABLED]: 'false',
     });
 
-    expect(wrapper.find('.summary-card')).toHaveLength(0);
+    expect(wrapper.find('.card')).toHaveLength(0);
     expect(wrapper.find('.summary-note')).toHaveLength(0);
     expect(wrapper.find('.test-item-details')).toHaveLength(1);
   });
