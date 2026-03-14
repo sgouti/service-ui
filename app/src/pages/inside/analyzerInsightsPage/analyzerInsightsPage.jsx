@@ -13,6 +13,7 @@ import { RootCauseClusterView } from 'components/clusters';
 import { COMMON_LOCALE_KEYS } from 'common/constants/localization';
 import { ModalLayout } from 'components/main/modal';
 import { showModalAction } from 'controllers/modal';
+import { NOTIFICATION_TYPES, showNotification } from 'controllers/notification';
 import { analyzerAttributesSelector, projectKeySelector } from 'controllers/project';
 import { querySelector } from 'controllers/pages';
 import {
@@ -162,6 +163,10 @@ const messages = defineMessages({
   selectedLaunch: {
     id: 'AnalyzerInsightsPage.selectedLaunch',
     defaultMessage: 'Selected Launch',
+  },
+  analyzing: {
+    id: 'AnalyzerInsightsPage.analyzing',
+    defaultMessage: 'Analyzing launch insights',
   },
 });
 
@@ -411,6 +416,26 @@ export const AnalyzerInsightsPage = () => {
   }, [summary?.launchId, dispatch]);
 
   useEffect(() => {
+    if (!loading && !clustersLoading) {
+      return () => {};
+    }
+
+    const timer = setTimeout(() => {
+      dispatch(
+        showNotification({
+          message: formatMessage(messages.analyzing),
+          type: NOTIFICATION_TYPES.INFO,
+          duration: 2500,
+        }),
+      );
+    }, 1200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [clustersLoading, dispatch, formatMessage, loading]);
+
+  useEffect(() => {
     if (!requestedItemId || !projectKey) {
       handledDeepLinkRef.current = null;
       return;
@@ -485,7 +510,7 @@ export const AnalyzerInsightsPage = () => {
     return <SpinningPreloader />;
   }
 
-  if (!summary) {
+  if (!summary || (!summary.launchId && !(summary.recentLaunches || []).length)) {
     return (
       <PageLayout title={formatMessage(messages.title)}>
         <PageSection>

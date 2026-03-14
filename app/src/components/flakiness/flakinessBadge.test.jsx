@@ -164,4 +164,37 @@ describe('FlakinessBadge', () => {
 
     expect(wrapper.isEmptyRender()).toBe(true);
   });
+
+  test('does not suppress later badges for the whole project after one unsupported response', async () => {
+    fetch
+      .mockRejectedValueOnce({
+        statusCode: 404,
+        message: 'Not Found',
+      })
+      .mockResolvedValueOnce({
+        flakyRate: 58,
+        totalRuns: 12,
+        flakyTransitions: 4,
+        history: [],
+      });
+
+    let firstWrapper;
+    await act(async () => {
+      firstWrapper = mount(<FlakinessBadge itemId={5} itemName="Checkout flow" enabled />);
+      await flushPromises();
+      await flushPromises();
+    });
+    firstWrapper.update();
+
+    let secondWrapper;
+    await act(async () => {
+      secondWrapper = mount(<FlakinessBadge itemId={6} itemName="Profile flow" enabled />);
+      await flushPromises();
+      await flushPromises();
+    });
+    secondWrapper.update();
+
+    expect(firstWrapper.isEmptyRender()).toBe(true);
+    expect(normalizeChildren(secondWrapper.find('.badge-label').prop('children'))).toBe('FLAKY');
+  });
 });

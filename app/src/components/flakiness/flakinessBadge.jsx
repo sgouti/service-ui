@@ -12,8 +12,6 @@ import styles from './flakinessBadge.scss';
 
 const cx = classNames.bind(styles);
 
-const unsupportedProjects = new Set();
-
 const messages = defineMessages({
   openDetails: {
     id: 'FlakinessBadge.openDetails',
@@ -76,7 +74,7 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
     let cancelled = false;
 
     const loadDetails = async () => {
-      if (!enabled || !projectKey || !itemId || unsupportedProjects.has(projectKey)) {
+      if (!enabled || !projectKey || !itemId) {
         setLoading(false);
         return;
       }
@@ -88,9 +86,6 @@ export const FlakinessBadge = ({ itemId = null, itemName = '', enabled = false, 
         }
       } catch (error) {
         if (!cancelled) {
-          if (projectKey && isUnsupportedAnalyzerEndpointError(error)) {
-            unsupportedProjects.add(projectKey);
-          }
           setDetails(null);
         }
       } finally {

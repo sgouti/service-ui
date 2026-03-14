@@ -18,6 +18,7 @@ jest.mock('react-tracking', () => () => (Component) => Component);
 jest.mock('controllers/testItem', () => ({
   isStepLevelSelector: jest.fn(),
   formatItemName: (name) => name,
+  getItemLevel: (type) => type,
 }));
 
 jest.mock('html-react-parser', () => jest.fn(() => null));
@@ -77,6 +78,7 @@ const createProps = (overrides = {}) => ({
   value: {
     id: 11,
     name: 'Checkout flow',
+    type: 'TEST',
     status: 'FAILED',
     hasChildren: false,
     hasStats: true,
@@ -134,7 +136,28 @@ describe('ItemInfo flakiness badge gating', () => {
           value: {
             id: 12,
             name: 'Checkout suite',
+            type: 'SUITE',
             hasChildren: true,
+            hasStats: true,
+            status: 'FAILED',
+          },
+        })}
+      />,
+    );
+
+    expect(mockFlakinessBadge).toHaveBeenCalled();
+    expect(mockFlakinessBadge.mock.calls[0][0].enabled).toBe(false);
+  });
+
+  test('disables flakiness badge for suite rows without children', () => {
+    mount(
+      <ItemInfo
+        {...createProps({
+          value: {
+            id: 13,
+            name: 'Checkout suite leaf',
+            type: 'SUITE',
+            hasChildren: false,
             hasStats: true,
             status: 'FAILED',
           },

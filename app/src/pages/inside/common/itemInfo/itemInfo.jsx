@@ -24,7 +24,7 @@ import Parser from 'html-react-parser';
 import { fromNowFormat } from 'common/utils';
 import { SAUCE_LABS, SAUCE_LABS_TITLE } from 'common/constants/pluginNames';
 
-import { isStepLevelSelector, formatItemName } from 'controllers/testItem';
+import { isStepLevelSelector, formatItemName, getItemLevel } from 'controllers/testItem';
 import { analyzerAttributesSelector } from 'controllers/project';
 import {
   availableIntegrationsByPluginNameSelector,
@@ -48,6 +48,7 @@ import { withTooltip } from 'components/main/tooltips/tooltip';
 import { TextTooltip } from 'components/main/tooltips/textTooltip';
 import { ExtensionLoader, extensionType } from 'components/extensionLoader';
 import ExternalLinkIcon from 'common/img/open-in-rounded-inline.svg';
+import { LEVEL_TEST } from 'common/constants/launchLevels';
 import { INSIGHTS_PAGE_ENABLED } from 'pages/inside/projectSettingsPageContainer/content/analyzerContainer/constants';
 import {
   FLAKINESS_BADGE_ENABLED,
@@ -83,6 +84,10 @@ const shouldShowFlakinessBadge = ({ enabled, isStepLevel, item, parentLaunch }) 
   }
 
   if (item.hasChildren !== false || item.hasStats === false) {
+    return false;
+  }
+
+  if (getItemLevel(item.type) !== LEVEL_TEST) {
     return false;
   }
 

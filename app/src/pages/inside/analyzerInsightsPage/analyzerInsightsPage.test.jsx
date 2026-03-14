@@ -11,6 +11,7 @@ import {
   fetchAnalyzerInsightsAction,
 } from 'controllers/analyzerInsights';
 import { showModalAction } from 'controllers/modal';
+import { NOTIFICATION_TYPES, showNotification } from 'controllers/notification';
 import { analyzerAttributesSelector, projectKeySelector } from 'controllers/project';
 import { querySelector } from 'controllers/pages';
 import { AnalyzerInsightsPage } from './analyzerInsightsPage';
@@ -88,6 +89,13 @@ jest.mock('controllers/analyzerInsights', () => ({
 
 jest.mock('controllers/modal', () => ({
   showModalAction: jest.fn((payload) => ({ type: 'SHOW_MODAL', payload })),
+}));
+
+jest.mock('controllers/notification', () => ({
+  NOTIFICATION_TYPES: {
+    INFO: 'info',
+  },
+  showNotification: jest.fn((payload) => ({ type: 'SHOW_NOTIFICATION', payload })),
 }));
 
 jest.mock('controllers/project', () => ({
@@ -288,5 +296,66 @@ describe('AnalyzerInsightsPage', () => {
 
     expect(wrapper.find('.badge')).toHaveLength(0);
     expect(wrapper.findWhere((node) => node.type() === 'button' && node.prop('aria-label') && String(node.prop('aria-label')).includes('Flakiness Details'))).toHaveLength(0);
+  });
+
+  test('renders no launches empty state when backend returns an empty insights payload', async () => {
+    configureSelectors({ insightsSummary: { recentLaunches: [] } });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<AnalyzerInsightsPage />);
+      await Promise.resolve();
+    });
+    wrapper.update();
+
+    expect(normalizeChildren(wrapper.find('.empty-state').prop('children'))).toBe(
+      'No launches are available for analyzer insights.',
+    );
+  });
+
+  test('shows analyzing notification when insights loading takes longer than the threshold', async () => {
+    jest.useFakeTimers();
+    useSelector.mockImplementation((selector) => {
+      if (selector === projectKeySelector) {
+        return 'demo';
+      }
+      if (selector === analyzerAttributesSelector) {
+        return {};
+      }
+      if (selector === querySelector) {
+        return {};
+      }
+      if (selector === analyzerInsightsSelector) {
+        return summary;
+      }
+      if (selector === analyzerInsightsLoadingSelector) {
+        return true;
+      }
+      if (selector === analyzerInsightsClustersSelector) {
+        return [];
+      }
+      if (selector === analyzerInsightsClustersLoadingSelector) {
+        return false;
+      }
+      return undefined;
+    });
+
+    let wrapper;
+    await act(async () => {
+      wrapper = mount(<AnalyzerInsightsPage />);
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1200);
+    });
+    wrapper.update();
+
+    expect(showNotification).toHaveBeenCalledWith({
+      message: 'Analyzing launch insights',
+      type: NOTIFICATION_TYPES.INFO,
+      duration: 2500,
+    });
+
+    jest.useRealTimers();
   });
 });
