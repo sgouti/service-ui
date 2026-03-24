@@ -1,0 +1,1 @@
+export { QualityInsightsPage } from './qualityInsightsPage';

@@ -18,6 +18,7 @@ import { NOT_FOUND } from 'redux-first-router';
 import { AdminLayout } from 'layouts/adminLayout';
 import { AppLayout } from 'layouts/appLayout';
 import { EmptyLayout } from 'layouts/emptyLayout';
+import { QualityInsightsLayout } from 'layouts/qualityInsightsLayout';
 
 import { ProjectsPage } from 'pages/admin/projectsPage';
 import { AllUsersPage } from 'pages/admin/allUsersPage';
@@ -31,6 +32,7 @@ import { DashboardPrintPage } from 'pages/inside/dashboardItemPage/dashboardPrin
 import { FiltersPage } from 'pages/inside/filtersPage';
 import { LaunchesPage } from 'pages/inside/launchesPage';
 import { ProfilePage } from 'pages/inside/profilePage';
+import { QualityInsightsPage } from 'pages/inside/qualityInsightsPage';
 import { SandboxPage } from 'pages/inside/sandboxPage';
 import { ProjectSettingsPageContainer } from 'pages/inside/projectSettingsPageContainer';
 import { ProjectMembersPageContainer } from 'pages/inside/projectMembersPageContainer';
@@ -51,6 +53,7 @@ import {
   OAUTH_SUCCESS,
   PLUGIN_UI_EXTENSION_ADMIN_PAGE,
   PROJECT_PLUGIN_PAGE,
+  PROJECT_QUALITY_INSIGHTS_PAGE,
   UNIQUE_ERRORS_PAGE,
   USER_PROFILE_SUB_PAGE,
   ACCOUNT_REMOVED_PAGE,
@@ -97,6 +100,11 @@ export const pageRendering = {
   },
   PROJECT_USERDEBUG_PAGE: { component: LaunchesPage, layout: AppLayout },
   PROJECT_USERDEBUG_TEST_ITEM_PAGE: { component: TestItemPage, layout: AppLayout },
+  [PROJECT_QUALITY_INSIGHTS_PAGE]: {
+    component: QualityInsightsPage,
+    layout: QualityInsightsLayout,
+    rawContent: true,
+  },
   ADMINISTRATE_PAGE: { component: ProjectsPage, layout: AdminLayout, access: ADMIN_ACCESS },
   PROJECTS_PAGE: { component: ProjectsPage, layout: AdminLayout, access: ADMIN_ACCESS },
   [PROJECT_DETAILS_PAGE]: { component: ProjectsPage, layout: AdminLayout, access: ADMIN_ACCESS },

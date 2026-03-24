@@ -43,6 +43,9 @@ export class Layout extends Component {
     Sidebar: PropTypes.elementType,
     rawContent: PropTypes.bool,
     isExtensionPage: PropTypes.bool,
+    sidebarWidth: PropTypes.string,
+    sidebarMobileWidth: PropTypes.string,
+    showCornerArea: PropTypes.bool,
     sessionExpirationConfig: PropTypes.number.isRequired,
     logout: PropTypes.func.isRequired,
   };
@@ -53,6 +56,9 @@ export class Layout extends Component {
     Sidebar: null,
     rawContent: false,
     isExtensionPage: false,
+    sidebarWidth: '56px',
+    sidebarMobileWidth: '200px',
+    showCornerArea: true,
   };
 
   state = {
@@ -121,7 +127,16 @@ export class Layout extends Component {
   };
 
   render() {
-    const { Header, Sidebar, Banner, rawContent, children } = this.props;
+    const {
+      Header,
+      Sidebar,
+      Banner,
+      rawContent,
+      children,
+      sidebarWidth,
+      sidebarMobileWidth,
+      showCornerArea,
+    } = this.props;
     const header = (
       <div className={cx('header-container')}>
         {Header && (
@@ -134,10 +149,17 @@ export class Layout extends Component {
     );
 
     return (
-      <div className={cx('layout')}>
+      <div
+        className={cx('layout')}
+        style={{
+          '--sidebar-width': sidebarWidth,
+          '--sidebar-mobile-width': sidebarMobileWidth,
+          '--sidebar-top-offset': showCornerArea ? '66px' : '0px',
+        }}
+      >
         <div className={cx('slide-container', { 'side-menu-opened': this.state.sideMenuOpened })}>
           <div className={cx('sidebar-container')}>
-            <div className={cx('corner-area')} />
+            {showCornerArea ? <div className={cx('corner-area')} /> : null}
             {Sidebar && (
               <Sidebar
                 onClickNavBtn={() => {

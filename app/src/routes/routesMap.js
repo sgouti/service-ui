@@ -36,6 +36,7 @@ import {
   PROJECT_USERDEBUG_PAGE,
   HISTORY_PAGE,
   UNIQUE_ERRORS_PAGE,
+  PROJECT_QUALITY_INSIGHTS_PAGE,
   PROJECTS_PAGE,
   PROJECT_DETAILS_PAGE,
   ALL_USERS_PAGE,
@@ -225,6 +226,7 @@ const routesMap = {
       dispatch(fetchClustersAction());
     },
   },
+  [PROJECT_QUALITY_INSIGHTS_PAGE]: '/:projectId/quality-insights/:insightSection(quick-summary|releases|cluster-view|failure-card|ml-analyser|flakiness|trends|duration|failure-search|alerts)',
   PROJECT_FILTERS_PAGE: {
     path: '/:projectId/filters',
     thunk: (dispatch, getState, { action }) => {

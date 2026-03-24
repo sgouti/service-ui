@@ -30,6 +30,7 @@ import { canSeeMembers } from 'common/utils/permissions';
 import { ALL } from 'common/constants/reservedFilterIds';
 import {
   PROJECT_DASHBOARD_PAGE,
+  PROJECT_QUALITY_INSIGHTS_PAGE,
   PROJECT_USERDEBUG_PAGE,
   LAUNCHES_PAGE,
   PROJECT_FILTERS_PAGE,
@@ -49,6 +50,7 @@ import {
 import { RemotePluginIcon } from 'components/integrations/elements/pluginIcon/remotePluginIcon';
 import DashboardIcon from './img/dashboard-icon-inline.svg';
 import LaunchesIcon from './img/launches-icon-inline.svg';
+import QualityInsightsIcon from './img/quality-insights-icon-inline.svg';
 import DebugIcon from './img/debug-icon-inline.svg';
 import ProfileIcon from './img/profile-icon-inline.svg';
 import AdministrateIcon from './img/administrate-icon-inline.svg';
@@ -111,6 +113,16 @@ export class AppSidebar extends Component {
         link: { type: PROJECT_DASHBOARD_PAGE, payload: { projectId: activeProject } },
         icon: DashboardIcon,
         message: <FormattedMessage id={'Sidebar.dashboardsBtn'} defaultMessage={'Dashboards'} />,
+        menuOrder: (menuCounter += menuStep),
+      },
+      {
+        onClick: () => this.onClickButton(SIDEBAR_EVENTS.clickSidebarIcon('quality_insights')),
+        link: {
+          type: PROJECT_QUALITY_INSIGHTS_PAGE,
+          payload: { projectId: activeProject, insightSection: 'quick-summary' },
+        },
+        icon: QualityInsightsIcon,
+        message: <FormattedMessage id={'Sidebar.qualityInsightsBtn'} defaultMessage={'Quality insights'} />,
         menuOrder: (menuCounter += menuStep),
       },
       {
