@@ -1,0 +1,186 @@
+.test-body {
+  padding: 15px 20px;
+  background: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #333;
+}
+
+.test-body-title {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  
+  .play-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    fill: #333;
+    opacity: 0.7;
+  }
+  
+  .count-badge {
+    background-color: #e4e6ea;
+    color: #4a4a4a;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-left: 10px;
+    font-weight: bold;
+  }
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+  min-height: 38px;
+
+  &:hover {
+    background-color: #fafaeb;
+  }
+
+  &.level-0 { margin-left: 0; }
+  &.level-1 { margin-left: 20px; }
+  &.level-2 { margin-left: 40px; }
+  &.level-3 { margin-left: 60px; }
+  &.level-4 { margin-left: 80px; }
+}
+
+.step-expand-icon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-right: 8px;
+  fill: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  
+  &.expanded {
+    transform: rotate(90deg);
+  }
+  
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.step-status-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  &.passed { fill: #20a052; color: #20a052; }
+  &.failed { fill: #d32f2f; color: #d32f2f; }
+  &.skipped { fill: #e6a200; color: #e6a200; }
+  &.attachment { fill: #666; color: #666; }
+}
+
+.step-number {
+  color: #888;
+  margin-right: 8px;
+  font-family: inherit;
+  min-width: 15px;
+}
+
+.step-name {
+  flex: 1;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-meta {
+  display: flex;
+  align-items: center;
+  color: #888;
+  font-size: 12px;
+}
+
+.step-attachment-info {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.step-attachment-type {
+  color: #666;
+}
+
+.step-attachment-size {
+  color: #888;
+}
+
+.step-attachment-actions {
+  display: flex;
+  gap: 8px;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: #666;
+    cursor: pointer;
+    
+    &:hover {
+      fill: #333;
+    }
+  }
+}
+
+.step-duration {
+  display: flex;
+  align-items: center;
+  
+  .duration-icon {
+    width: 14px;
+    height: 14px;
+    fill: #a0a0a0;
+    margin-right: 4px;
+    transform: rotate(180deg);
+  }
+}
+
+.allure-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: 20px;
+  
+  .allure-btn {
+    border-radius: 14px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    &.active {
+      background-color: #20a052;
+      color: white;
+      border: none;
+    }
+    &.inactive {
+      background-color: #e0e0e0;
+      color: #666;
+      border: none;
+    }
+  }
+}

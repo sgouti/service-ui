@@ -49,6 +49,7 @@ import { Attachments } from './attachments';
 import { getActionMessage } from '../utils/getActionMessage';
 import styles from './logItemInfoTabs.scss';
 import { LogsGridWrapper } from '../../logsGridWrapper';
+import { TestBodyTab } from './testBody';
 
 const cx = classNames.bind(styles);
 
@@ -72,6 +73,10 @@ const messages = defineMessages({
   historyTab: {
     id: 'LogItemInfoTabs.historyTab',
     defaultMessage: 'History of actions',
+  },
+  testBodyTab: {
+    id: 'LogItemInfoTabs.testBodyTab',
+    defaultMessage: 'Test body',
   },
 });
 
@@ -206,6 +211,14 @@ export class LogItemInfoTabs extends Component {
       eventInfo: LOG_PAGE_EVENTS.ACTIONS_TAB,
     };
     const tabs = [
+      {
+        id: 'testBody',
+        label: formatMessage(messages.testBodyTab),
+        icon: LogIcon,
+        eventInfo: LOG_PAGE_EVENTS.LOGS_TAB,
+        component: TestBodyTab,
+        componentProps: { logItem },
+      },
       {
         id: 'stack',
         label: formatMessage(messages.stackTab),

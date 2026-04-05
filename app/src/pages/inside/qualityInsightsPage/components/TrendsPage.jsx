@@ -45,7 +45,7 @@ const TrendsPage = ({
     <Panel title={'Failure count per day'}>
       <MiniChart values={displayedFailureCountTrend} tone={'danger'} />
     </Panel>
-    {trendsComparePrevious ? <div className={cx('status-message')}>Previous-period comparison is enabled for the current dummy range.</div> : null}
+    {trendsComparePrevious ? <div className={cx('status-message')}>Previous-period comparison is enabled for the selected date range.</div> : null}
   </>
 );
 

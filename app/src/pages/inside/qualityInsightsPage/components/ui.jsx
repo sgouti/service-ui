@@ -47,14 +47,6 @@ const sparkToneClass = {
   neutral: '',
 };
 
-const tileAccentColor = {
-  success: '#1d9e75',
-  danger: '#e8594a',
-  warning: '#ef9f27',
-  info: '#378add',
-  neutral: '#6c7486',
-};
-
 const launchFilterKey = 'filter.cnt.name';
 
 const getLaunchesPageLink = (projectId, launchName) => ({
@@ -308,11 +300,22 @@ DonutRing.defaultProps = {
 
 export const normalizeTestName = (testName) => String(testName || '').split('::').pop().trim();
 
+export const extractLaunchNameFromMeta = (meta) => {
+  const parts = String(meta || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return parts.length > 1 ? parts[parts.length - 1] : parts[0] || '';
+};
+
 export const resolveLaunchName = (data, testName, fallbackLaunchName = '') => {
   const normalizedName = normalizeTestName(testName);
   return (
+    (typeof testName === 'object' && testName?.launchName) ||
     data.testLaunchMap?.[testName] ||
     data.testLaunchMap?.[normalizedName] ||
+    (typeof testName === 'object' && (data.testLaunchMap?.[testName?.stableKey] || data.testLaunchMap?.[String(testName?.itemId)])) ||
     fallbackLaunchName ||
     data.sprintRows?.[0]?.[0] ||
     ''

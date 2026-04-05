@@ -345,7 +345,6 @@ export class LogsGridWrapper extends Component {
     const rowHighlightingConfig = {
       highlightedRowId: this.state.highlightedRowId,
       isGridRowHighlighted: this.state.isGridRowHighlighted,
-      onGridRowHighlighted: () => this.setState({ isGridRowHighlighted: false }),
       highlightErrorRow: true,
     };
 

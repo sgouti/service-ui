@@ -2,16 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
 import { connect } from 'react-redux';
-import { NavLink } from 'redux-first-router-link';
 import {
   payloadSelector,
   projectIdSelector,
-  PROJECT_LAUNCHES_PAGE,
-  PROJECT_QUALITY_INSIGHTS_PAGE,
-  TEST_ITEM_PAGE,
 } from 'controllers/pages';
 import { assignedProjectsSelector } from 'controllers/user';
-import { ALL } from 'common/constants/reservedFilterIds';
 import styles from './qualityInsightsPage.scss';
 import { Badge } from './components/ui';
 import SummaryPage from './components/SummaryPage';
@@ -38,63 +33,197 @@ import {
   RELEASES_SECTION,
   TRENDS_SECTION,
 } from './constants';
-import { navigationGroups, sectionTitles } from './mockData';
+import { sectionTitles } from './mockData';
 import { fetchLaunchData, transformLaunchesToInsightsData } from './dataService';
 
 const cx = classNames.bind(styles);
 
-
-
-
-
-
-
-
-
-
-
-const quickLinkMap = [
-  [CLUSTER_VIEW_SECTION, 'View failure clusters'],
-  [FLAKINESS_SECTION, 'Flakiness report'],
-  [FAILURE_SEARCH_SECTION, 'Search failures'],
-];
-
 const parsePercent = (value) => Number(String(value).replace('%', '')) || 0;
 const parseSignedPercent = (value) => Number(String(value).replace('%', '')) || 0;
-const createAlertRuleState = (alertRulesData) =>
-  alertRulesData.map(([name, condition, state, active, channels]) => ({
-    name,
-    condition,
-    state,
-    active,
-    channels,
-  }));
-const createShareLinksState = (shareLinksData) =>
-  shareLinksData.map(([name, state, expiry, views, url]) => ({
-    name,
-    state,
-    expiry,
-    views,
-    url,
-  }));
 const filterByWindow = (values, windowLabel) =>
   windowLabel === 'Last 7 days' ? values.slice(-7) : values;
 const getSearchQueryLabel = (value) => value.trim().toLowerCase();
+const SUMMARY_FILTER_ALL = '__all__';
+const SUMMARY_DATE_RANGE_OPTIONS = [
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+  { value: '90', label: 'Last 90 days' },
+  { value: 'all', label: 'All time' },
+];
+const RESERVED_SUMMARY_ATTRIBUTE_KEYS = new Set(['build', 'env', 'environment', 'release', 'sprint']);
+
+const getLaunchStartTimestamp = (launch) => {
+  const timestamp = launch?.startTime ? new Date(launch.startTime).getTime() : 0;
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
+const sortLaunchesByStartTime = (launches) =>
+  [...(launches || [])].sort((left, right) => getLaunchStartTimestamp(right) - getLaunchStartTimestamp(left));
+
+const getLaunchLabel = (launch) => {
+  if (!launch) {
+    return '';
+  }
+
+  const launchName = String(launch.name || 'Launch').trim() || 'Launch';
+  return launch.number === undefined || launch.number === null
+    ? launchName
+    : `${launchName} #${launch.number}`;
+};
+
+const getLaunchName = (launch) => String(launch?.name || '').trim();
+
+const getLaunchNumber = (launch) =>
+  launch?.number === undefined || launch?.number === null ? '' : String(launch.number);
+
+const getLaunchAttributes = (launch) => (Array.isArray(launch?.attributes) ? launch.attributes : []);
+
+const getLaunchAttributeValue = (launch, keys) => {
+  const keySet = new Set(keys.map((key) => key.toLowerCase()));
+  const attribute = getLaunchAttributes(launch).find((item) => {
+    const attributeKey = String(item?.key || '').trim().toLowerCase();
+    const attributeValue = String(item?.value || '').trim();
+    return keySet.has(attributeKey) && attributeValue;
+  });
+
+  return String(attribute?.value || '').trim();
+};
+
+const getLaunchEnvironment = (launch) =>
+  getLaunchAttributeValue(launch, ['env', 'environment']) || 'Unspecified';
+
+const getLaunchTags = (launch) =>
+  Array.from(
+    new Set(
+      getLaunchAttributes(launch)
+        .filter((attribute) => {
+          const key = String(attribute?.key || '').trim().toLowerCase();
+          const value = String(attribute?.value || '').trim();
+          return value && !RESERVED_SUMMARY_ATTRIBUTE_KEYS.has(key);
+        })
+        .map((attribute) => String(attribute.value).trim()),
+    ),
+  );
+
+const buildScopedLaunchWindow = (launches, filters) => {
+  const orderedLaunches = sortLaunchesByStartTime(launches);
+  const days = Number(filters.dateRange);
+  const anchorTimestamp = orderedLaunches[0] ? getLaunchStartTimestamp(orderedLaunches[0]) : Date.now();
+  const cutoffTimestamp = Number.isNaN(days) || filters.dateRange === 'all'
+    ? null
+    : anchorTimestamp - days * 24 * 60 * 60 * 1000;
+
+  return orderedLaunches.filter((launch) => {
+    const timestamp = getLaunchStartTimestamp(launch);
+    const matchesDateRange = cutoffTimestamp === null || timestamp >= cutoffTimestamp;
+    const matchesEnvironment =
+      filters.environment === SUMMARY_FILTER_ALL ||
+      getLaunchEnvironment(launch) === filters.environment;
+    const launchTags = getLaunchTags(launch);
+    const matchesTag =
+      filters.tag === SUMMARY_FILTER_ALL ||
+      launchTags.includes(filters.tag);
+
+    return matchesDateRange && matchesEnvironment && matchesTag;
+  });
+};
+
+const buildSummaryScope = (launches, filters) => {
+  const windowLaunches = buildScopedLaunchWindow(launches, filters);
+  const launchNameScopedLaunches = filters.launchName === SUMMARY_FILTER_ALL
+    ? windowLaunches
+    : windowLaunches.filter((launch) => getLaunchName(launch) === filters.launchName);
+  const selectedLaunch = filters.launchNumber !== SUMMARY_FILTER_ALL
+    ? launchNameScopedLaunches.find((launch) => getLaunchNumber(launch) === String(filters.launchNumber)) || launchNameScopedLaunches[0] || null
+    : launchNameScopedLaunches[0] || null;
+  const selectedIndex = selectedLaunch
+    ? launchNameScopedLaunches.findIndex((launch) => String(launch.id) === String(selectedLaunch.id))
+    : -1;
+  const previousLaunch = selectedIndex >= 0 ? launchNameScopedLaunches[selectedIndex + 1] || null : null;
+  const contextLaunches = selectedIndex >= 0
+    ? launchNameScopedLaunches.slice(selectedIndex, selectedIndex + 6)
+    : launchNameScopedLaunches.slice(0, 6);
+
+  return {
+    windowLaunches,
+    launchNameScopedLaunches,
+    selectedLaunch,
+    previousLaunch,
+    contextLaunches,
+  };
+};
+
+const buildSummaryFilterOptions = (launches, filters) => {
+  const orderedLaunches = sortLaunchesByStartTime(launches);
+  const scopedLaunches = buildScopedLaunchWindow(orderedLaunches, filters);
+  const launchNameOptions = Array.from(
+    new Set(scopedLaunches.map((launch) => getLaunchName(launch)).filter(Boolean)),
+  ).sort((left, right) => left.localeCompare(right));
+  const launchNumberSource = filters.launchName === SUMMARY_FILTER_ALL
+    ? scopedLaunches
+    : scopedLaunches.filter((launch) => getLaunchName(launch) === filters.launchName);
+  const launchNumberOptions = Array.from(
+    new Set(launchNumberSource.map((launch) => getLaunchNumber(launch)).filter(Boolean)),
+  ).sort((left, right) => Number(right) - Number(left));
+  const tagOptions = Array.from(
+    new Set(orderedLaunches.flatMap((launch) => getLaunchTags(launch))),
+  ).sort((left, right) => left.localeCompare(right));
+  const environmentOptions = Array.from(
+    new Set(orderedLaunches.map((launch) => getLaunchEnvironment(launch)).filter(Boolean)),
+  ).sort((left, right) => left.localeCompare(right));
+
+  return {
+    dateRange: SUMMARY_DATE_RANGE_OPTIONS,
+    launchName: [
+      { value: SUMMARY_FILTER_ALL, label: 'All launch names' },
+      ...launchNameOptions.map((launchName) => ({ value: launchName, label: launchName })),
+    ],
+    launchNumber: [
+      { value: SUMMARY_FILTER_ALL, label: 'Latest matching launch number' },
+      ...launchNumberOptions.map((launchNumber) => ({ value: launchNumber, label: `#${launchNumber}` })),
+    ],
+    tag: [
+      { value: SUMMARY_FILTER_ALL, label: 'All tags' },
+      ...tagOptions.map((tag) => ({ value: tag, label: tag })),
+    ],
+    environment: [
+      { value: SUMMARY_FILTER_ALL, label: 'All environments' },
+      ...environmentOptions.map((environment) => ({ value: environment, label: environment })),
+    ],
+  };
+};
 
 
 
 
 
 
-const extractLaunchNameFromMeta = (meta) => {
-  const [, launchName = ''] = String(meta || '').split(',');
-  return launchName.trim();
+const dedupeSearchResults = (results) => {
+  const seen = new Set();
+
+  return results.filter((result) => {
+    const key = result.map((value) => String(value || '').trim().toLowerCase()).join('|');
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 };
 
 
 const buildInitialState = () => ({
   selectedLaunchName: '',
   expandedReleaseKeys: [],
+  summaryFilters: {
+    dateRange: '30',
+    launchName: SUMMARY_FILTER_ALL,
+    launchNumber: SUMMARY_FILTER_ALL,
+    tag: SUMMARY_FILTER_ALL,
+    environment: SUMMARY_FILTER_ALL,
+  },
   selectedClusterIndex: 0,
   selectedNovelIndex: 0,
   selectedDefectType: 'Product bug',
@@ -133,14 +262,6 @@ const buildInitialState = () => ({
   insightsData: null,
   insightsLoading: true,
   insightsError: null,
-});
-
-const getSectionLink = (projectId, insightSection) => ({
-  type: PROJECT_QUALITY_INSIGHTS_PAGE,
-  payload: {
-    projectId,
-    insightSection,
-  },
 });
 
 
@@ -192,7 +313,7 @@ export class QualityInsightsPage extends React.Component {
 
   static defaultProps = {
     activeSection: DEFAULT_QUALITY_INSIGHTS_SECTION,
-    projectId: 'superadmin_personal',
+    projectId: '',
     assignedProjects: [],
   };
 
@@ -214,7 +335,11 @@ export class QualityInsightsPage extends React.Component {
   }
 
   loadData = async (projectId) => {
-    const normalizedProjectId = projectId || 'superadmin_personal';
+    const normalizedProjectId = projectId || this.props.assignedProjects[0] || '';
+    if (!normalizedProjectId) {
+      this.setState({ insightsLoading: false, insightsError: 'No project selected.' });
+      return;
+    }
     try {
       this.setState({ insightsLoading: true, insightsError: null });
       const launches = await fetchLaunchData(normalizedProjectId);
@@ -223,17 +348,49 @@ export class QualityInsightsPage extends React.Component {
         insightsData,
         insightsLoading: false,
         selectedLaunchName: insightsData.sprintRows?.[0]?.[0] || '',
-        expandedReleaseKeys: (insightsData.releases || []).flatMap((release) =>
-          release.sprints.slice(0, 1).map((sprint) => `${release.title}-${sprint.name}`),
-        ),
+        expandedReleaseKeys: [],
       });
     } catch (error) {
-      this.setState({ insightsLoading: false, insightsError: String(error) });
+      this.setState({
+        insightsLoading: false,
+        insightsError: error?.message || String(error),
+      });
     }
   };
 
   setSelectedLaunch = (selectedLaunchName) => {
     this.setState({ selectedLaunchName });
+  };
+
+  updateSummaryFilter = (key) => (event) => {
+    const nextValue = event.target.value;
+
+    this.setState((prevState) => {
+      const nextFilters = {
+        ...prevState.summaryFilters,
+        [key]: nextValue,
+      };
+
+      const windowLaunches = buildScopedLaunchWindow(prevState.insightsData?.launches, nextFilters);
+      const availableLaunchNames = new Set(windowLaunches.map((launch) => getLaunchName(launch)).filter(Boolean));
+
+      if (nextFilters.launchName !== SUMMARY_FILTER_ALL && !availableLaunchNames.has(nextFilters.launchName)) {
+        nextFilters.launchName = SUMMARY_FILTER_ALL;
+      }
+
+      const numberScopedLaunches = nextFilters.launchName === SUMMARY_FILTER_ALL
+        ? windowLaunches
+        : windowLaunches.filter((launch) => getLaunchName(launch) === nextFilters.launchName);
+      const availableLaunchNumbers = new Set(numberScopedLaunches.map((launch) => getLaunchNumber(launch)).filter(Boolean));
+
+      if (nextFilters.launchNumber !== SUMMARY_FILTER_ALL && !availableLaunchNumbers.has(String(nextFilters.launchNumber))) {
+        nextFilters.launchNumber = SUMMARY_FILTER_ALL;
+      }
+
+      return {
+        summaryFilters: nextFilters,
+      };
+    });
   };
 
   toggleRelease = (releaseKey) => {
@@ -275,7 +432,7 @@ export class QualityInsightsPage extends React.Component {
   };
 
   exportFlakiness = () => {
-    this.setState({ exportMessage: 'Front-end export prepared from the current dummy flakiness filter.' });
+    this.setState({ exportMessage: 'CSV export prepared from the current flakiness filter.' });
   };
 
   setSelectedSearchResult = (selectedSearchResultIndex) => {
@@ -363,7 +520,7 @@ export class QualityInsightsPage extends React.Component {
 
   render() {
     const { activeSection, projectId } = this.props;
-    const normalizedProjectId = projectId || 'superadmin_personal';
+    const normalizedProjectId = projectId || this.props.assignedProjects[0] || '';
     const data = this.state.insightsData;
 
     if (this.state.insightsLoading) {
@@ -403,8 +560,6 @@ export class QualityInsightsPage extends React.Component {
       );
     }
 
-    const selectedLaunch =
-      (data.sprintRows || []).find(([launch]) => launch === this.state.selectedLaunchName) || (data.sprintRows || [])[0] || [];
     const minimumFlakiness =
       this.state.flakinessMinimum === 'Show all'
         ? 0
@@ -422,7 +577,7 @@ export class QualityInsightsPage extends React.Component {
     const displayedPassRateTrend = filterByWindow(data.passRateTrend || [], this.state.trendsWindow);
     const displayedFailureCountTrend = filterByWindow(data.failureCountTrend || [], this.state.trendsWindow);
     const normalizedSearchQuery = getSearchQueryLabel(this.state.searchTerm);
-    const filteredSearchResults = (data.searchResults || []).filter(([, title, meta]) => {
+    const filteredSearchResults = dedupeSearchResults((data.searchResults || []).filter(([, title, meta]) => {
       const matchesQuery =
         !normalizedSearchQuery ||
         title.toLowerCase().includes(normalizedSearchQuery) ||
@@ -432,12 +587,20 @@ export class QualityInsightsPage extends React.Component {
         meta.toLowerCase().includes(this.state.searchProject.toLowerCase()) ||
         normalizedProjectId === this.state.searchProject;
       return matchesQuery && matchesProject;
-    });
+    }));
     const selectedCluster = (data.clusters || [])[this.state.selectedClusterIndex] || (data.clusters || [])[0] || { signature: 'No clusters', count: 0, firstSeen: '', launches: [], logs: [] };
     const failureCard = (data.failureCardPresets || [])[this.state.selectedClusterIndex] || (data.failureCardPresets || [])[0] || { title: 'No failures', category: 'N/A', launch: '', summary: '', tone: 'neutral' };
+    const summaryFilterOptions = buildSummaryFilterOptions(data.launches, this.state.summaryFilters);
+    const summaryScope = buildSummaryScope(data.launches, this.state.summaryFilters);
+    const summaryScopeLaunch = summaryScope.selectedLaunch ? getLaunchLabel(summaryScope.selectedLaunch) : 'No matching execution';
+    const summaryScopeCount = summaryScope.launchNameScopedLaunches.length;
+    const summaryScopeMeta = summaryScope.previousLaunch
+      ? `${summaryScopeLaunch} compared with ${getLaunchLabel(summaryScope.previousLaunch)}`
+      : `${summaryScopeLaunch} · ${summaryScopeCount} matching execution${summaryScopeCount === 1 ? '' : 's'}`;
     const interactions = {
       summary: {
         data,
+        scope: summaryScope,
       },
       releases: {
         data,
@@ -453,10 +616,7 @@ export class QualityInsightsPage extends React.Component {
       },
       failureCard: {
         data,
-        failureCard: {
-          ...failureCard,
-          summary: selectedCluster.signature,
-        },
+        failureCard,
         selectedDefectType: this.state.selectedDefectType,
         onSelectDefectType: this.setSelectedDefectType,
         showRawLog: this.state.showRawLog,
@@ -540,6 +700,54 @@ export class QualityInsightsPage extends React.Component {
                 {activeSection === ML_ANALYSER_SECTION ? <Badge tone={'neutral'}>MiniLM, HDBSCAN, BM25</Badge> : null}
                 {activeSection === FAILURE_SEARCH_SECTION ? <Badge tone={'neutral'}>BM25 plus FAISS</Badge> : null}
               </div>
+              {activeSection === QUICK_SUMMARY_SECTION ? (
+                <div className={cx('summary-filter-bar')}>
+                  <label className={cx('summary-filter-field')}>
+                    <span className={cx('summary-filter-label')}>Date range</span>
+                    <select className={cx('select', 'summary-filter-select')} value={this.state.summaryFilters.dateRange} onChange={this.updateSummaryFilter('dateRange')}>
+                      {summaryFilterOptions.dateRange.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className={cx('summary-filter-field')}>
+                    <span className={cx('summary-filter-label')}>Launch name</span>
+                    <select className={cx('select', 'summary-filter-select')} value={this.state.summaryFilters.launchName} onChange={this.updateSummaryFilter('launchName')}>
+                      {summaryFilterOptions.launchName.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className={cx('summary-filter-field')}>
+                    <span className={cx('summary-filter-label')}>Launch number</span>
+                    <select className={cx('select', 'summary-filter-select')} value={this.state.summaryFilters.launchNumber} onChange={this.updateSummaryFilter('launchNumber')}>
+                      {summaryFilterOptions.launchNumber.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className={cx('summary-filter-field')}>
+                    <span className={cx('summary-filter-label')}>Tag</span>
+                    <select className={cx('select', 'summary-filter-select')} value={this.state.summaryFilters.tag} onChange={this.updateSummaryFilter('tag')}>
+                      {summaryFilterOptions.tag.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className={cx('summary-filter-field')}>
+                    <span className={cx('summary-filter-label')}>Environment</span>
+                    <select className={cx('select', 'summary-filter-select')} value={this.state.summaryFilters.environment} onChange={this.updateSummaryFilter('environment')}>
+                      {summaryFilterOptions.environment.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className={cx('summary-filter-meta')}>
+                    <div className={cx('summary-filter-kicker')}>Quick Summary scope</div>
+                    <div className={cx('summary-filter-copy')}>{summaryScopeMeta}</div>
+                  </div>
+                </div>
+              ) : null}
               {renderSection(activeSection, normalizedProjectId, interactions)}
             </div>
           </div>
